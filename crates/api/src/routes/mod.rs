@@ -3,7 +3,7 @@ pub mod meta;
 pub mod projects;
 pub mod stubs;
 
-use crate::{analytics, answers, state::AppState};
+use crate::{analytics, answers, connect, notifications, state::AppState, stream, webhooks};
 use axum::Router;
 use utoipa::openapi::{
     Info, Server,
@@ -32,6 +32,24 @@ pub fn build() -> (Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(utoipa_axum::routes!(analytics::list_keywords))
         .routes(utoipa_axum::routes!(answers::list_answers))
         .routes(utoipa_axum::routes!(answers::list_prompt_answers))
+        // M6 agent surface.
+        .routes(utoipa_axum::routes!(connect::start_agent_connect))
+        .routes(utoipa_axum::routes!(connect::get_agent_connect))
+        .routes(utoipa_axum::routes!(
+            webhooks::list_webhooks,
+            webhooks::create_webhook
+        ))
+        .routes(utoipa_axum::routes!(
+            webhooks::update_webhook,
+            webhooks::delete_webhook
+        ))
+        .routes(utoipa_axum::routes!(notifications::list_notification_rules))
+        .routes(utoipa_axum::routes!(
+            notifications::update_notification_rule
+        ))
+        .routes(utoipa_axum::routes!(notifications::list_notifications))
+        .routes(utoipa_axum::routes!(notifications::mark_notifications_read))
+        .routes(utoipa_axum::routes!(stream::stream_events))
         .merge(stubs::stub_routes())
         .split_for_parts();
 
