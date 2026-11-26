@@ -82,18 +82,42 @@ export function Pill({
   )
 }
 
-/** A table that scrolls inside its own box, so the page never scrolls sideways. */
+/** A table that reads as stacked label: value rows on a phone, so no column is cut off. */
 export function TableBox({ children }: { children: ReactNode }) {
   return (
-    <div className="-mx-1 overflow-x-auto px-1">
-      <table className="w-full min-w-[30rem] text-left text-sm">{children}</table>
-    </div>
+    <table className="w-full text-left text-sm max-sm:[&_thead]:sr-only max-sm:[&_tr]:block max-sm:[&_tr]:border-t max-sm:[&_tr]:border-border max-sm:[&_tr]:py-2 max-sm:[&_tbody]:block">
+      {children}
+    </table>
   )
 }
 
 export const th =
   'whitespace-nowrap py-2 pr-4 text-xs font-medium uppercase tracking-wide text-muted'
-export const td = 'whitespace-nowrap border-t border-border py-2 pr-4'
+
+/** `label` is the column name, shown beside the value on a phone. */
+export function Td({
+  label,
+  className,
+  children,
+}: {
+  label?: string
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <td
+      data-label={label}
+      className={cn(
+        'border-t border-border py-2 pr-4 max-sm:flex max-sm:items-baseline max-sm:gap-3 max-sm:border-0 max-sm:py-0.5 max-sm:pr-0',
+        label &&
+          'max-sm:justify-between max-sm:before:text-xs max-sm:before:uppercase max-sm:before:text-muted max-sm:before:content-[attr(data-label)]',
+        className,
+      )}
+    >
+      {children}
+    </td>
+  )
+}
 
 export function ScanButton({ onStarted }: { onStarted?: () => void }) {
   const scan = useMutation({

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, Loading, Pill, Problem, ScanButton, TableBox, td, th } from '@/components/ui/kit'
+import { Card, Loading, Pill, Problem, ScanButton, TableBox, Td, th } from '@/components/ui/kit'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type {
@@ -123,24 +123,13 @@ function Body({ data, projectId }: { data: AnalyticsOverview; projectId: string 
         </p>
       ))}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <MetricCard
-          label="Visibility score"
-          metric={overview.visibilityScore}
-          unit="%"
-          hint="Answers that name your brand"
-        />
-        <MetricCard
-          label="Citation share"
-          metric={overview.citationShare}
-          unit="%"
-          hint="Answers that cite your domain"
-        />
+        <MetricCard label="Visibility score" metric={overview.visibilityScore} unit="%" />
+        <MetricCard label="Citation share" metric={overview.citationShare} unit="%" />
         <MetricCard
           label="Average position"
           metric={overview.averagePosition}
           digits={1}
           lowerIsBetter
-          hint="Place in lists, 1 is first"
         />
       </div>
       <p className="text-sm">
@@ -174,19 +163,25 @@ function Body({ data, projectId }: { data: AnalyticsOverview; projectId: string 
           <tbody>
             {overview.leaderboard.map((row) => (
               <tr key={row.brand.key} className={row.brand.isOwned ? 'bg-primary-soft' : ''}>
-                <td className={cn(td, 'pl-2')}>{row.rank ?? '—'}</td>
-                <td className={cn(td, 'font-medium')}>
-                  {row.brand.name} {row.brand.isOwned && <Pill tone="good">You</Pill>}
-                </td>
-                <td className={td}>
-                  {num(row.visibilityScore, 0, '%')} <Delta value={row.delta} unit=" pts" />
-                </td>
-                <td className={td}>{num(row.citationShare, 0, '%')}</td>
-                <td className={td}>{num(row.averagePosition, 1)}</td>
-                <td className={td}>
+                <Td className="pl-2 max-sm:hidden">{row.rank ?? '—'}</Td>
+                <Td className="font-medium">
+                  <span>
+                    <span className="sm:hidden">{row.rank}. </span>
+                    {row.brand.name}
+                  </span>
+                  {row.brand.isOwned && <Pill tone="good">You</Pill>}
+                </Td>
+                <Td label="Visibility">
+                  <span>
+                    {num(row.visibilityScore, 0, '%')} <Delta value={row.delta} unit=" pts" />
+                  </span>
+                </Td>
+                <Td label="Citations">{num(row.citationShare, 0, '%')}</Td>
+                <Td label="Position">{num(row.averagePosition, 1)}</Td>
+                <Td label="Mentions">
                   {row.mentions ?? '—'}
                   {overview.mentionCohortCount ? ` of ${overview.mentionCohortCount}` : ''}
-                </td>
+                </Td>
               </tr>
             ))}
           </tbody>
@@ -207,15 +202,15 @@ function Body({ data, projectId }: { data: AnalyticsOverview; projectId: string 
             <tbody>
               {overview.providerBreakdown.map((row) => (
                 <tr key={row.providerId}>
-                  <td className={cn(td, 'font-medium')}>
-                    {providerName[row.providerId] ?? row.providerId}{' '}
+                  <Td className="font-medium">
+                    {providerName[row.providerId] ?? row.providerId}
                     {row.status !== 'active' && (
-                      <Pill tone={row.status === 'degraded' ? 'bad' : 'warn'}>{row.status}</Pill>
+                      <Pill tone={row.status === 'degraded' ? 'bad' : 'neutral'}>{row.status}</Pill>
                     )}
-                  </td>
-                  <td className={td}>{num(row.visibilityScore.value, 0, '%')}</td>
-                  <td className={td}>{num(row.citationShare.value, 0, '%')}</td>
-                  <td className={td}>{row.answerCount}</td>
+                  </Td>
+                  <Td label="Visibility">{num(row.visibilityScore.value, 0, '%')}</Td>
+                  <Td label="Citations">{num(row.citationShare.value, 0, '%')}</Td>
+                  <Td label="Answers">{row.answerCount}</Td>
                 </tr>
               ))}
             </tbody>
@@ -255,14 +250,12 @@ function MetricCard({
   unit = '',
   digits = 0,
   lowerIsBetter = false,
-  hint,
 }: {
   label: string
   metric: MetricValue
   unit?: string
   digits?: number
   lowerIsBetter?: boolean
-  hint: string
 }) {
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
@@ -281,7 +274,6 @@ function MetricCard({
           'No earlier window to compare'
         )}
       </p>
-      <p className="mt-2 text-xs text-muted">{hint}</p>
     </div>
   )
 }
@@ -333,7 +325,8 @@ function TrendChart({ trend }: { trend: TrendSeries }) {
     <figure>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="h-auto w-full overflow-visible"
+        preserveAspectRatio="none"
+        className="h-56 w-full overflow-visible sm:h-auto"
         role="img"
         aria-label={`Visibility score by day for ${brands.map((b) => b.name).join(', ')}`}
       >
@@ -410,14 +403,14 @@ function TopicTable({
           const leader = ranked[0]
           return (
             <tr key={topic.topic}>
-              <td className={cn(td, 'font-medium')}>
+              <Td className="font-medium">
                 {topic.topic}{' '}
                 <span className="text-xs text-muted">{topic.promptCount} prompts</span>
-              </td>
-              <td className={td}>{num(mine?.visibilityScore, 0, '%')}</td>
-              <td className={td}>
+              </Td>
+              <Td label="You">{num(mine?.visibilityScore, 0, '%')}</Td>
+              <Td label="Leader">
                 {leader ? `${name(leader.brandKey)} ${num(leader.visibilityScore, 0, '%')}` : '—'}
-              </td>
+              </Td>
             </tr>
           )
         })}

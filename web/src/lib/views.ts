@@ -29,7 +29,7 @@ export type PlatformRow = {
   citationShare: MetricValue
   averagePosition: MetricValue
   answerCount: number
-  status: 'active' | 'pending' | 'degraded'
+  status: 'active' | 'off' | 'degraded'
 }
 
 export type TopicRanking = {

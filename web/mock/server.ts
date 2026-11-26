@@ -28,7 +28,7 @@ const PLATFORMS = [
   { id: 'chatgpt', displayName: 'ChatGPT', status: 'active' },
   { id: 'claude', displayName: 'Claude', status: 'active' },
   { id: 'perplexity', displayName: 'Perplexity', status: 'active' },
-  { id: 'gemini', displayName: 'Gemini', status: 'pending' },
+  { id: 'gemini', displayName: 'Gemini', status: 'off' },
 ]
 const ANSWERING = PLATFORMS.filter((p) => p.status === 'active')
 
@@ -172,17 +172,18 @@ function overview(rangeDays: number): AnalyticsOverview {
       averagePosition: metric(2.4, -0.3),
       trend: { brands: BRANDS, points, unit: 'percent' },
       leaderboard: BRANDS.map((b, i) => ({
-        rank: [4, 1, 2, 3][i] ?? null,
         brand: b,
         visibilityScore: scores[b.key],
         delta: [6.4, -1.2, 0.8, -0.5][i],
         citationShare: [27, 44, 39, 21][i],
         averagePosition: [2.4, 1.6, 2.1, 3.2][i],
         mentions: [Math.round(answerCount * 0.42), 52, 46, 33][i],
-      })).sort((a, b) => (a.rank ?? 9) - (b.rank ?? 9)),
+      }))
+        .sort((a, b) => b.visibilityScore - a.visibilityScore)
+        .map((row, i) => ({ ...row, rank: i + 1 })),
       mentionCohortCount: answerCount,
       providerBreakdown: PLATFORMS.map((p, i): PlatformRow => {
-        if (p.status === 'pending') {
+        if (p.status === 'off') {
           const none = { value: null, delta: null, deltaAvailable: false }
           return {
             providerId: p.id,
@@ -190,7 +191,7 @@ function overview(rangeDays: number): AnalyticsOverview {
             citationShare: none,
             averagePosition: none,
             answerCount: 0,
-            status: 'pending',
+            status: 'off',
           }
         }
         return {

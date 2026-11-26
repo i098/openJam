@@ -58,7 +58,7 @@ function Shell() {
           </Link>
           <select
             aria-label="Project"
-            className="h-9 min-w-0 max-w-[50vw] rounded-md border border-border bg-background px-2 text-sm"
+            className="h-9 min-w-0 max-w-[38vw] rounded-md border border-border bg-background px-2 text-sm"
             value={projectId ?? ''}
             onChange={(e) =>
               e.target.value === '+'
@@ -74,9 +74,8 @@ function Shell() {
             ))}
             <option value="+">New project…</option>
           </select>
-          <span className="flex-1" />
-          <span className="hidden truncate text-sm sm:inline">{me.user.email}</span>
-          <Button variant="ghost" size="sm" onClick={signOut}>
+          <span className="ml-auto hidden truncate text-sm sm:inline">{me.user.email}</span>
+          <Button variant="ghost" size="sm" className="max-sm:ml-auto" onClick={signOut}>
             Sign out
           </Button>
           {projectId && (
