@@ -5,9 +5,15 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .init();
+    // One JSON object per line by default; OPENJAM_LOG_FORMAT=text gives readable lines.
+    let logs = tracing_subscriber::fmt().with_env_filter(
+        tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+    );
+    if std::env::var("OPENJAM_LOG_FORMAT").is_ok_and(|f| f == "text") {
+        logs.init();
+    } else {
+        logs.json().init();
+    }
 
     let config = Config::from_env().map_err(|e| e.to_string())?;
     let pool = db::connect(&config.database_url)

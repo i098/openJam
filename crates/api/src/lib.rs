@@ -2,6 +2,7 @@
 
 pub mod auth;
 pub mod error;
+pub mod health;
 pub mod routes;
 pub mod state;
 pub mod types;
@@ -13,34 +14,22 @@ use crate::{
     state::AppState,
 };
 use axum::{
-    Json, Router,
-    extract::State,
-    http::StatusCode,
+    Json, Router, middleware,
     routing::{get, post},
 };
 use serde_json::json;
 use tower_http::{
     request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
-    trace::TraceLayer,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
+use tracing::Level;
 
-fn healthz_router() -> Router<AppState> {
-    Router::new().route("/healthz", get(healthz))
-}
-
-async fn healthz(State(state): State<AppState>) -> (StatusCode, Json<serde_json::Value>) {
-    match sqlx::query("SELECT 1").execute(&state.pool).await {
-        Ok(_) => (StatusCode::OK, Json(json!({"ok": true}))),
-        Err(_) => (StatusCode::SERVICE_UNAVAILABLE, Json(json!({"ok": false}))),
-    }
-}
-
-/// The full API: `/healthz`, `/auth`, `/v1`, `/openapi.json`.
+/// The full API: `/healthz`, `/readyz`, `/metrics`, `/auth`, `/v1`, `/openapi.json`.
 pub fn router(state: AppState) -> Router {
     let (v1, openapi) = routes::build();
     let doc = serde_json::to_value(&openapi).unwrap_or_else(|_| json!({}));
     Router::new()
-        .merge(healthz_router())
+        .merge(health::router())
         .route("/auth/signup", post(signup))
         .route("/auth/login", post(login))
         .route("/auth/logout", post(logout))
@@ -50,7 +39,12 @@ pub fn router(state: AppState) -> Router {
         .with_state(state)
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateRequestIdLayer::x_request_id())
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .on_response(DefaultOnResponse::new().level(Level::INFO)),
+        )
+        .layer(middleware::from_fn(health::track))
 }
 
 /// The contract as YAML, for `crates/api/contract/openapi.yaml`.
