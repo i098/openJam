@@ -5,46 +5,6 @@ use crate::error::ApiErrorBody;
 
 // Every stub takes `Principal`, so a caller without credentials gets 401, not 501.
 #[utoipa::path(
-    get, path = "/v1/analytics/overview", tag = "Analytics", operation_id = "get_analytics_overview",
-    summary = "Get /v1/analytics/overview (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_analytics_overview(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/analytics/prompts", tag = "Analytics", operation_id = "list_prompt_analytics",
-    summary = "Get /v1/analytics/prompts (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_prompt_analytics(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/analytics/metrics", tag = "Analytics", operation_id = "list_analytics_metrics",
-    summary = "Get /v1/analytics/metrics (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_analytics_metrics(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/keywords", tag = "Keywords", operation_id = "list_keywords",
-    summary = "Get /v1/keywords (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_keywords(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
     get, path = "/v1/brand", tag = "Brand", operation_id = "get_brand",
     summary = "Get /v1/brand (not built yet)",
         security(("bearerAuth" = [])),
@@ -854,27 +814,6 @@ pub async fn create_research_request(_principal: crate::auth::Principal) -> crat
 }
 
 #[utoipa::path(
-    get, path = "/v1/answers", tag = "Answers", operation_id = "list_answers",
-    summary = "Get /v1/answers (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_answers(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/prompts/{promptId}/answers", tag = "Answers", operation_id = "list_prompt_answers",
-    summary = "Get /v1/prompts/{promptId}/answers (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("promptId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_prompt_answers(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
     get, path = "/v1/projects/{projectId}", tag = "Projects", operation_id = "get_project",
     summary = "Get /v1/projects/{projectId} (not built yet)",
         security(("bearerAuth" = [])),
@@ -1012,10 +951,6 @@ pub async fn put_engines(_principal: crate::auth::Principal) -> crate::Result<()
 
 pub fn stub_routes() -> utoipa_axum::router::OpenApiRouter<crate::state::AppState> {
     utoipa_axum::router::OpenApiRouter::new()
-        .routes(utoipa_axum::routes!(get_analytics_overview))
-        .routes(utoipa_axum::routes!(list_prompt_analytics))
-        .routes(utoipa_axum::routes!(list_analytics_metrics))
-        .routes(utoipa_axum::routes!(list_keywords))
         .routes(utoipa_axum::routes!(get_brand))
         .routes(utoipa_axum::routes!(update_brand))
         .routes(utoipa_axum::routes!(pin_competitors))
@@ -1092,8 +1027,6 @@ pub fn stub_routes() -> utoipa_axum::router::OpenApiRouter<crate::state::AppStat
         .routes(utoipa_axum::routes!(get_research))
         .routes(utoipa_axum::routes!(get_research_report))
         .routes(utoipa_axum::routes!(create_research_request))
-        .routes(utoipa_axum::routes!(list_answers))
-        .routes(utoipa_axum::routes!(list_prompt_answers))
         .routes(utoipa_axum::routes!(get_project))
         .routes(utoipa_axum::routes!(update_brand_competitor))
         .routes(utoipa_axum::routes!(remove_brand_competitor))

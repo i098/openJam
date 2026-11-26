@@ -1,5 +1,7 @@
 //! openJam HTTP API: sessions for the dashboard, `sk_...` keys for `/v1`, and one error body.
 
+pub mod analytics;
+pub mod answers;
 pub mod auth;
 pub mod error;
 pub mod routes;

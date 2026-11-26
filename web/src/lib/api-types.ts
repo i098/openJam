@@ -199,7 +199,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/analytics/metrics (not built yet) */
+        /** One metric family as flat rows, for charts */
         get: operations["list_analytics_metrics"];
         put?: never;
         post?: never;
@@ -216,7 +216,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/analytics/overview (not built yet) */
+        /** Visibility, share of voice, citations and position for a window */
         get: operations["get_analytics_overview"];
         put?: never;
         post?: never;
@@ -233,7 +233,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/analytics/prompts (not built yet) */
+        /** Metrics for each tracked prompt */
         get: operations["list_prompt_analytics"];
         put?: never;
         post?: never;
@@ -250,7 +250,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/answers (not built yet) */
+        /** List answers */
         get: operations["list_answers"];
         put?: never;
         post?: never;
@@ -672,7 +672,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/keywords (not built yet) */
+        /** Keyword and topic visibility */
         get: operations["list_keywords"];
         put?: never;
         post?: never;
@@ -1071,7 +1071,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/prompts/{promptId}/answers (not built yet) */
+        /** List the answers to one prompt */
         get: operations["list_prompt_answers"];
         put?: never;
         post?: never;
@@ -1310,6 +1310,125 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AnalyticsBrand: {
+            domain?: string | null;
+            isOwned: boolean;
+            key: string;
+            name: string;
+        };
+        AnalyticsOverview: {
+            /** Format: date-time */
+            lastScanAt?: string | null;
+            metricDefinitions: components["schemas"]["MetricDefinitions"];
+            metricSource: string;
+            /** Format: date-time */
+            nextScanAt?: string | null;
+            overview: components["schemas"]["AnalyticsOverviewSection"];
+            project: components["schemas"]["AnalyticsProject"];
+            /** Format: int64 */
+            promptsMeasured: number;
+            /** Format: int64 */
+            promptsTracked: number;
+            providers: components["schemas"]["AnalyticsPlatform"][];
+            selection: components["schemas"]["AnalyticsSelection"];
+            /** Format: int64 */
+            trackedPrompts: number;
+            window: components["schemas"]["AnalyticsWindow"];
+        };
+        AnalyticsOverviewSection: {
+            averagePosition: components["schemas"]["MetricValue"];
+            changeFeed: components["schemas"]["ChangeFeedItem"][];
+            citationShare: components["schemas"]["MetricValue"];
+            leaderboard: components["schemas"]["LeaderboardEntry"][];
+            providerBreakdown: components["schemas"]["PlatformBreakdownRow"][];
+            shareOfVoice: components["schemas"]["MetricValue"];
+            topicRankings: components["schemas"]["TopicRanking"][];
+            trend: components["schemas"]["TrendSeries"];
+            visibilityScore: components["schemas"]["MetricValue"];
+        };
+        AnalyticsPlatform: {
+            displayName: string;
+            id: string;
+            label: string;
+            /** @description `active` when the window has answers, `pending` when it has none. */
+            status: string;
+        };
+        AnalyticsProject: {
+            /** Format: date-time */
+            bootstrapCompletedAt?: string | null;
+            brandName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastVisibilitySuccessAt?: string | null;
+            siteDomain: string;
+            status: string;
+        };
+        AnalyticsSelection: {
+            providerIds: string[];
+            range: string;
+            segmentIds: string[];
+        };
+        AnalyticsWindow: {
+            /** Format: int64 */
+            answerCount: number;
+            comparisonLabel: string;
+            endDate: string;
+            label: string;
+            /** Format: int64 */
+            providerCount: number;
+            startDate: string;
+        };
+        Answer: {
+            answer: components["schemas"]["AnswerText"];
+            brandMentioned?: boolean | null;
+            brandRecommended?: boolean | null;
+            brandsMentioned: components["schemas"]["AnswerBrand"][];
+            citedUrlCount: number;
+            citedUrls: string[];
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            observedAt: string;
+            ownDomainCited?: boolean | null;
+            platform: string;
+            /** Format: int32 */
+            position?: number | null;
+            /** Format: uuid */
+            promptId: string;
+            promptStatus?: string | null;
+            promptText?: string | null;
+            /** Format: uuid */
+            runId: string;
+            sentiment?: string | null;
+        };
+        AnswerBrand: {
+            /** Format: int32 */
+            listRank?: number | null;
+            name: string;
+            owned: boolean;
+            recommended?: boolean | null;
+            sentiment?: string | null;
+        };
+        AnswerPage: {
+            answers: components["schemas"]["Answer"][];
+            nextCursor?: string | null;
+            pageInfo: components["schemas"]["AnswerPageInfo"];
+        };
+        AnswerPageInfo: {
+            hasNextPage: boolean;
+            /** Format: int64 */
+            limit: number;
+            nextCursor?: string | null;
+        };
+        AnswerText: {
+            /** @description Characters in the whole answer. */
+            length: number;
+            /** @description `full` or `excerpt`. */
+            source: string;
+            text?: string | null;
+            truncated: boolean;
+        };
         /** @description The body of every failed `/v1` call. Shape kept from the source API. */
         ApiErrorBody: {
             /** @description Stable machine-readable code. */
@@ -1339,6 +1458,15 @@ export interface components {
             /** Format: date-time */
             revokedAt?: string | null;
         };
+        ChangeFeedItem: {
+            /** Format: double */
+            delta: number;
+            /** @description `visibility_up` or `visibility_down`. */
+            kind: string;
+            providerId: string;
+            /** Format: double */
+            value: number;
+        };
         CreateProject: {
             /** @description Host name, for example `acme.com`. */
             domain: string;
@@ -1355,6 +1483,23 @@ export interface components {
             /** @description Shown once. Store it now; the server keeps only its hash. */
             key: string;
             keyPrefix: string;
+        };
+        LeaderboardEntry: {
+            /** Format: double */
+            averagePosition?: number | null;
+            brand: components["schemas"]["AnalyticsBrand"];
+            /** Format: double */
+            citationShare?: number | null;
+            /** Format: double */
+            delta?: number | null;
+            /** Format: int64 */
+            mentions: number;
+            /** Format: int64 */
+            rank?: number | null;
+            /** Format: double */
+            shareOfVoice?: number | null;
+            /** Format: double */
+            visibilityScore?: number | null;
         };
         Me: {
             project?: null | components["schemas"]["MeProject"];
@@ -1373,6 +1518,98 @@ export interface components {
             id: string;
             name?: string | null;
         };
+        MetricDefinitions: {
+            citations: string;
+            counts: string;
+            percentages: string;
+            position: string;
+            prompts: string;
+            scope: string;
+            share_of_voice: string;
+            visibility: string;
+        };
+        /** @enum {string} */
+        MetricKind: "visibility" | "competitors" | "citations" | "platforms" | "topics" | "sources";
+        /** @description One row of a metric family. Each family fills the fields that apply to it. */
+        MetricRow: {
+            /** Format: int64 */
+            answerCount?: number | null;
+            /**
+             * Format: double
+             * @description Answers that cite the domain, as a percent of all answers (`sources`).
+             */
+            answerShare?: number | null;
+            /**
+             * Format: int64
+             * @description Answers that cite the domain (`sources`).
+             */
+            answers?: number | null;
+            /** Format: double */
+            averagePosition?: number | null;
+            brand?: string | null;
+            brandKey?: string | null;
+            /** Format: double */
+            citationShare?: number | null;
+            /**
+             * Format: int64
+             * @description Citations of the domain (`sources`).
+             */
+            citations?: number | null;
+            date?: string | null;
+            domain?: string | null;
+            isOwned?: boolean | null;
+            /** Format: int64 */
+            mentions?: number | null;
+            platform?: string | null;
+            /** Format: int64 */
+            promptCount?: number | null;
+            /** Format: int64 */
+            rank?: number | null;
+            /** Format: double */
+            shareOfVoice?: number | null;
+            status?: string | null;
+            topic?: string | null;
+            /** Format: double */
+            visibilityScore?: number | null;
+        };
+        MetricRows: {
+            /** @description The family asked for: `visibility`, `competitors`, `citations`, `platforms`, `topics` or `sources`. */
+            metric: components["schemas"]["MetricKind"];
+            rows: components["schemas"]["MetricRow"][];
+        };
+        /** @description A metric in percent (`0` to `100`), or a mean position. The delta compares the window before. */
+        MetricValue: {
+            /**
+             * Format: double
+             * @description The change against the previous window. `null` when a side has no data.
+             */
+            delta?: number | null;
+            /** @description False when the current or the previous window has no data. */
+            deltaAvailable: boolean;
+            /**
+             * Format: double
+             * @description `null` when the window has no answers to measure.
+             */
+            value?: number | null;
+        };
+        PageInfo: {
+            hasNextPage: boolean;
+            /** Format: int64 */
+            limit: number;
+            nextCursor?: string | null;
+            /** Format: int64 */
+            totalCount: number;
+        };
+        PlatformBreakdownRow: {
+            /** Format: int64 */
+            answerCount: number;
+            averagePosition: components["schemas"]["MetricValue"];
+            citationShare: components["schemas"]["MetricValue"];
+            providerId: string;
+            shareOfVoice: components["schemas"]["MetricValue"];
+            status: string;
+            visibilityScore: components["schemas"]["MetricValue"];
+        };
         ProjectList: {
             projects: components["schemas"]["ProjectSummary"][];
         };
@@ -1386,6 +1623,63 @@ export interface components {
             siteUrl: string;
             /** @description `setup`, `active`, `paused` or `blocked`. */
             status: string;
+        };
+        PromptAnalytics: {
+            filters: components["schemas"]["PromptFilters"];
+            metricDefinitions: components["schemas"]["MetricDefinitions"];
+            pageInfo: components["schemas"]["PageInfo"];
+            project: components["schemas"]["AnalyticsProject"];
+            prompts: components["schemas"]["PromptRow"][];
+            providers: components["schemas"]["AnalyticsPlatform"][];
+            window: components["schemas"]["AnalyticsWindow"];
+        };
+        PromptFilters: {
+            intent?: string | null;
+            platform?: string | null;
+            query?: string | null;
+            topic?: string | null;
+        };
+        PromptMetrics: {
+            averagePosition: components["schemas"]["MetricValue"];
+            /** Format: int64 */
+            citationRank?: number | null;
+            citationShare: components["schemas"]["MetricValue"];
+            /** Format: int64 */
+            executions: number;
+            shareOfVoice: components["schemas"]["MetricValue"];
+            /** Format: int64 */
+            visibilityRank?: number | null;
+            visibilityScore: components["schemas"]["MetricValue"];
+        };
+        PromptRow: {
+            /** Format: uuid */
+            id: string;
+            intent?: string | null;
+            metrics: components["schemas"]["PromptMetrics"];
+            persona?: string | null;
+            text: string;
+            topic?: string | null;
+        };
+        TopicRanking: {
+            /** Format: int64 */
+            answerCount: number;
+            /** Format: int64 */
+            promptCount: number;
+            topic: string;
+            visibilityScore: components["schemas"]["MetricValue"];
+        };
+        TrendPoint: {
+            /** @description UTC day, `YYYY-MM-DD`. */
+            date: string;
+            /** @description Mention rate of each brand on that day, by brand key. */
+            scores: {
+                [key: string]: number;
+            };
+        };
+        TrendSeries: {
+            brands: components["schemas"]["AnalyticsBrand"][];
+            points: components["schemas"]["TrendPoint"][];
+            unit: string;
         };
         Usage: {
             /** Format: double */
@@ -1672,14 +1966,45 @@ export interface operations {
     };
     list_analytics_metrics: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description The metric family to flatten into rows. */
+                metric: components["schemas"]["MetricKind"];
+                rangeDays?: number;
+                projectId?: string;
+                /** @description One engine, for example `openai`. Applies to `visibility`, `competitors`, `citations` and `topics`. */
+                platform?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricRows"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1691,14 +2016,43 @@ export interface operations {
     };
     get_analytics_overview: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Days in the window, 1 to 365. The default is 30. */
+                rangeDays?: number;
+                /** @description The project to measure. The default is the newest project. */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsOverview"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1710,14 +2064,51 @@ export interface operations {
     };
     list_prompt_analytics: {
         parameters: {
-            query?: never;
+            query?: {
+                rangeDays?: number;
+                projectId?: string;
+                /** @description Page size, 1 to 100. The default is 25. */
+                limit?: number;
+                /** @description `nextCursor` of the page before. */
+                cursor?: string;
+                intent?: string;
+                topic?: string;
+                /** @description One engine, for example `openai`. */
+                platform?: string;
+                /** @description Text the prompt contains. Case is ignored. */
+                query?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptAnalytics"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1729,14 +2120,49 @@ export interface operations {
     };
     list_answers: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only answers to this prompt. */
+                promptId?: string;
+                /** @description One engine, for example `openai`. */
+                platform?: string;
+                /** @description Only answers observed at or after this time (RFC 3339). */
+                since?: string;
+                /** @description Only answers observed at or before this time (RFC 3339). */
+                until?: string;
+                /** @description `true`: answers that cite the project's domain. `false`: answers that do not. */
+                cited?: boolean;
+                /** @description Only answers that mention this competitor. */
+                competitor?: string;
+                /** @description `true`: the whole answer text. The default is a short excerpt. */
+                full?: boolean;
+                /** @description Page size, 1 to 100. The default is 25. */
+                limit?: number;
+                /** @description `nextCursor` of the page before. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2568,14 +2994,43 @@ export interface operations {
     };
     list_keywords: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Days in the window, 1 to 365. The default is 30. */
+                rangeDays?: number;
+                /** @description The project to measure. The default is the newest project. */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricRows"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3243,17 +3698,50 @@ export interface operations {
     };
     list_prompt_answers: {
         parameters: {
-            query?: never;
+            query?: {
+                platform?: string;
+                since?: string;
+                until?: string;
+                cited?: boolean;
+                competitor?: string;
+                full?: boolean;
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The prompt */
                 promptId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
