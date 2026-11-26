@@ -33,11 +33,10 @@ export type PlatformRow = {
 }
 
 export type TopicRanking = {
-  rankingAvailable?: boolean
   topic: string
   promptCount: number
-  eligibleObservationCount: number
-  ranked: Array<{ brandKey: string; visibilityScore: number | null }>
+  answerCount: number
+  visibilityScore: MetricValue
 }
 
 export type AnalyticsOverview = {

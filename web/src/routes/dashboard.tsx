@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Card, Loading, Pill, Problem, ScanButton, TableBox, Td, th } from '@/components/ui/kit'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/cn'
-import type {
-  AnalyticsOverview,
-  LeaderboardEntry,
-  MetricValue,
-  TopicRanking,
-  TrendSeries,
+import {
+  type AnalyticsOverview,
+  type LeaderboardEntry,
+  type MetricValue,
+  platformName,
+  type TopicRanking,
+  type TrendSeries,
 } from '@/lib/views'
 import { shellRoute } from '@/routes/shell'
 
@@ -81,8 +82,9 @@ function Dashboard() {
 function Body({ data, projectId }: { data: AnalyticsOverview; projectId: string }) {
   const { overview, window } = data
   const notices = Object.values(data.sectionNotices ?? {})
-  const owned = overview.trend.brands.find((b) => b.isOwned)?.key
-  const providerName = Object.fromEntries(data.providers.map((p) => [p.id, p.displayName]))
+  const providerName = Object.fromEntries(
+    data.providers.map((p) => [p.id, p.id === 'openai' ? platformName(p.id) : p.displayName]),
+  )
 
   if (window.answerCount === 0) {
     return (
@@ -203,7 +205,7 @@ function Body({ data, projectId }: { data: AnalyticsOverview; projectId: string 
               {overview.providerBreakdown.map((row) => (
                 <tr key={row.providerId}>
                   <Td className="font-medium">
-                    {providerName[row.providerId] ?? row.providerId}
+                    {providerName[row.providerId] ?? platformName(row.providerId)}
                     {row.status !== 'active' && (
                       <Pill tone={row.status === 'degraded' ? 'bad' : 'neutral'}>{row.status}</Pill>
                     )}
@@ -218,11 +220,7 @@ function Body({ data, projectId }: { data: AnalyticsOverview; projectId: string 
         </Card>
 
         <Card title="Topics">
-          <TopicTable
-            topics={overview.topicRankings}
-            owned={owned}
-            brands={overview.trend.brands}
-          />
+          <TopicTable topics={overview.topicRankings} />
         </Card>
       </div>
 
@@ -373,16 +371,7 @@ function TrendChart({ trend }: { trend: TrendSeries }) {
   )
 }
 
-function TopicTable({
-  topics,
-  owned,
-  brands,
-}: {
-  topics: TopicRanking[]
-  owned: string | undefined
-  brands: TrendSeries['brands']
-}) {
-  const name = (key: string) => brands.find((b) => b.key === key)?.name ?? key
+function TopicTable({ topics }: { topics: TopicRanking[] }) {
   if (topics.length === 0)
     return <p className="text-sm">No topics yet. Tag prompts with a topic.</p>
   return (
@@ -390,30 +379,20 @@ function TopicTable({
       <thead>
         <tr>
           <th className={th}>Topic</th>
-          <th className={th}>You</th>
-          <th className={th}>Leader</th>
+          <th className={th}>Visibility</th>
+          <th className={th}>Answers</th>
         </tr>
       </thead>
       <tbody>
-        {topics.map((topic) => {
-          const ranked = [...topic.ranked].sort(
-            (a, b) => (b.visibilityScore ?? -1) - (a.visibilityScore ?? -1),
-          )
-          const mine = ranked.find((r) => r.brandKey === owned)
-          const leader = ranked[0]
-          return (
-            <tr key={topic.topic}>
-              <Td className="font-medium">
-                {topic.topic}{' '}
-                <span className="text-xs text-muted">{topic.promptCount} prompts</span>
-              </Td>
-              <Td label="You">{num(mine?.visibilityScore, 0, '%')}</Td>
-              <Td label="Leader">
-                {leader ? `${name(leader.brandKey)} ${num(leader.visibilityScore, 0, '%')}` : '—'}
-              </Td>
-            </tr>
-          )
-        })}
+        {topics.map((topic) => (
+          <tr key={topic.topic}>
+            <Td className="font-medium">
+              {topic.topic} <span className="text-xs text-muted">{topic.promptCount} prompts</span>
+            </Td>
+            <Td label="Visibility">{num(topic.visibilityScore.value, 0, '%')}</Td>
+            <Td label="Answers">{topic.answerCount}</Td>
+          </tr>
+        ))}
       </tbody>
     </TableBox>
   )
