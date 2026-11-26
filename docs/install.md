@@ -1,7 +1,7 @@
 # Install, upgrade, back up
 
 openJam runs as four containers: `web`, `api`, `worker` and `db` (Postgres 16).
-You need Docker with the Compose plugin, and about 1 GB of free memory.
+You need Docker with the Compose plugin,.
 
 ## Install
 
