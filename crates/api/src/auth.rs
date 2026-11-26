@@ -255,11 +255,12 @@ pub async fn signup(State(state): State<AppState>, Json(body): Json<Signup>) -> 
         )));
     }
     let hash = hash_password(&body.password)?;
+    let name = body.name.filter(|n| !n.trim().is_empty());
     let user_id: Uuid = sqlx::query_scalar(
         "INSERT INTO users (email, name, password_hash) VALUES ($1, $2, $3) RETURNING id",
     )
     .bind(&email)
-    .bind(body.name.filter(|n| !n.trim().is_empty()))
+    .bind(&name)
     .bind(hash)
     .fetch_one(&state.pool)
     .await?;
@@ -274,7 +275,7 @@ pub async fn signup(State(state): State<AppState>, Json(body): Json<Signup>) -> 
         .bind(user_id)
         .execute(&state.pool)
         .await?;
-    let (cookie, info) = start_session(&state.pool, &state.config, user_id, email, None).await?;
+    let (cookie, info) = start_session(&state.pool, &state.config, user_id, email, name).await?;
     Ok((CookieJar::new().add(cookie), Json(info)).into_response())
 }
 

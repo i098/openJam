@@ -67,6 +67,7 @@ async fn signup_key_and_projects(pool: PgPool) {
     )
     .await;
     assert_eq!(status, StatusCode::OK, "signup: {body}");
+    assert_eq!(body["user"]["name"], "A", "signup echoes the name: {body}");
     let cookie = cookie.expect("session cookie");
     assert!(cookie.starts_with("openjam_session="));
 
