@@ -30,6 +30,10 @@ services:
       # The address people and agents use to reach openJam, for OAuth and agent-connect links.
       # Empty: taken from the request headers. Set it on any install that others can reach.
       OPENJAM_PUBLIC_URL: ${OPENJAM_PUBLIC_URL:-}
+      OPENJAM_GITHUB_APP_ID: ${OPENJAM_GITHUB_APP_ID:-}
+      OPENJAM_GITHUB_APP_PRIVATE_KEY: ${OPENJAM_GITHUB_APP_PRIVATE_KEY:-}
+      OPENJAM_GITHUB_API_URL: ${OPENJAM_GITHUB_API_URL:-}
+      OPENJAM_GITHUB_REPOS: ${OPENJAM_GITHUB_REPOS:-}
       RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       db:
@@ -53,6 +57,10 @@ services:
       RUST_LOG: ${RUST_LOG:-info}
       RUNNER_SHARED_SECRET: ${RUNNER_SHARED_SECRET:-}
       OPENJAM_RUNNER_URL: http://runner:8080
+      OPENJAM_GITHUB_APP_ID: ${OPENJAM_GITHUB_APP_ID:-}
+      OPENJAM_GITHUB_APP_PRIVATE_KEY: ${OPENJAM_GITHUB_APP_PRIVATE_KEY:-}
+      OPENJAM_GITHUB_API_URL: ${OPENJAM_GITHUB_API_URL:-}
+      OPENJAM_GITHUB_REPOS: ${OPENJAM_GITHUB_REPOS:-}
     volumes:
       - secrets:/var/lib/openjam
     networks:

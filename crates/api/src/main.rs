@@ -24,9 +24,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Fans events out to the inbox and webhooks, and sends the webhook deliveries.
     openjam_api::dispatch::spawn(pool.clone());
     let bind = config.bind.clone();
+    let github = match openjam_publish::github::App::from_env() {
+        Ok(app) => app.map(Arc::new),
+        Err(e) => {
+            tracing::error!("GitHub publishing is off: {e}");
+            None
+        }
+    };
     let state = AppState {
         pool,
         config: Arc::new(config),
+        github,
     };
     // Fail here rather than on the first request if the contract cannot be built.
     let _ = openapi_yaml();

@@ -16,6 +16,7 @@ path = "src/bin/openapi.rs"
 [dependencies]
 openjam-core.workspace = true
 openjam-mcp.workspace = true
+openjam-publish.workspace = true
 base64.workspace = true
 chrono-tz.workspace = true
 futures-util.workspace = true
@@ -44,6 +45,7 @@ uuid.workspace = true
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
+jsonwebtoken = "9"
 
 [lints]
 workspace = true

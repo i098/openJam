@@ -25,6 +25,7 @@ fn app(pool: PgPool) -> Router {
     router(AppState {
         pool,
         config: Arc::new(config),
+        github: None,
     })
 }
 

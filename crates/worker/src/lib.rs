@@ -1,7 +1,9 @@
 //! The job worker: claims Postgres jobs, runs scan calls and the judge, and starts scans on schedule.
 
+mod content_update;
 mod judge;
 pub mod pages;
+mod publish;
 mod research;
 mod scan;
 
@@ -13,6 +15,7 @@ use openjam_core::{
     tracking::{self, QUEUE_JUDGE, QUEUE_SCAN},
 };
 use openjam_engines::Router;
+use openjam_publish::{delivery::QUEUE as QUEUE_PUBLISH, store::QUEUE_UPDATE};
 use pages::PageReader;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -22,6 +25,8 @@ pub const MAINTENANCE: &str = "maintenance";
 pub const WORKER_QUEUES: &[&str] = &[
     QUEUE_SCAN,
     QUEUE_JUDGE,
+    QUEUE_PUBLISH,
+    QUEUE_UPDATE,
     QUEUE_RESEARCH,
     QUEUE_CHECK,
     MAINTENANCE,
@@ -64,6 +69,8 @@ async fn handle(svc: &Services, job: &Job) -> Result<Outcome, String> {
     match job.queue.as_str() {
         QUEUE_SCAN => scan::handle(svc, job).await,
         QUEUE_JUDGE => judge::handle(svc, job).await,
+        QUEUE_PUBLISH => publish::handle(svc, job).await,
+        QUEUE_UPDATE => content_update::handle(svc, job).await,
         QUEUE_RESEARCH => research::handle_research(svc, job).await,
         QUEUE_CHECK => research::handle_check(svc, job).await,
         MAINTENANCE => {

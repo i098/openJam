@@ -81,6 +81,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => tracing::error!(%e, "research tick failed"),
         }
     });
+    spawn_every(Duration::from_secs(60), svc.clone(), |svc| async move {
+        match openjam_publish::delivery::auto_publish_tick(&svc.pool, chrono::Utc::now()).await {
+            Ok(0) => {}
+            Ok(n) => tracing::info!(n, "auto-publish scheduled deliveries"),
+            Err(e) => tracing::error!(%e, "auto-publish tick failed"),
+        }
+    });
     spawn_every(Duration::from_secs(60), svc.clone(), move |svc| {
         let siwc = siwc.clone();
         async move {

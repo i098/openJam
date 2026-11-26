@@ -40,11 +40,25 @@ Compose reads `.env` in the project directory. [.env.example](../.env.example) l
 | `OPENJAM_SESSION_DAYS` | `30` | Days a dashboard sign-in stays valid. |
 | `RUST_LOG` | `info` | Log filter. Example: `openjam_api=debug,info`. |
 | `OPENJAM_LOG_FORMAT` | `json` | API log format: `json` or `text`. |
+| `OPENJAM_GITHUB_APP_ID` | empty | Id of your GitHub App. Empty turns publishing to GitHub off. |
+| `OPENJAM_GITHUB_APP_PRIVATE_KEY` | empty | The App's private key (PEM) with each newline written as `\n`. A file works too when you run the binaries by hand: set `OPENJAM_GITHUB_APP_PRIVATE_KEY_FILE`. |
+| `OPENJAM_GITHUB_REPOS` | empty | Repositories that may be connected, as `owner/name` separated by commas. Empty allows every repository the App is installed on. Set it when more than one person signs up. |
+| `OPENJAM_GITHUB_API_URL` | `https://api.github.com` | Set it for GitHub Enterprise Server. |
 | `DATABASE_URL` | set by `compose.yml` | Postgres connection string. Required when you run the binaries by hand. |
 | `OPENJAM_BIND` | `0.0.0.0:8080` | Listen address of the API inside its container. |
 
 An invalid value stops the service at start with a message that names the variable.
 After you edit `.env`, run `docker compose up -d` to apply it.
+
+### Publish to GitHub
+
+openJam opens a pull request with each article. It never pushes to your base branch and never merges.
+
+1. In GitHub, open **Settings → Developer settings → GitHub Apps → New GitHub App**. Leave the webhook off. Set **Contents** and **Pull requests** to *Read and write*. Choose where it may be installed.
+2. Generate a private key and note the App id. Put both in `.env` as shown above, then run `docker compose up -d`.
+3. Install the App on the repository that holds your site.
+4. In the dashboard (or with `PUT /v1/destinations/{id}/github`), connect the repository: owner, name, base branch, content folder and the public route, for example `/blog/{slug}`. One repository belongs to one destination, and `OPENJAM_GITHUB_REPOS` limits which repositories any workspace may connect.
+5. Publish an article. openJam opens the pull request, and the delivery goes `scheduled`, `in_review`, then `live` when you merge it. The worker polls the pull request; no webhook has to reach your install.
 
 ### HTTPS
 
