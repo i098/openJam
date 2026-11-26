@@ -58,7 +58,7 @@ function Shell() {
           </Link>
           <select
             aria-label="Project"
-            className="h-9 min-w-0 max-w-[38vw] rounded-md border border-border bg-background px-2 text-sm"
+            className="h-9 min-w-0 max-w-[55vw] truncate rounded-md border border-border bg-background py-0 pl-2 pr-6 text-sm"
             value={projectId ?? ''}
             onChange={(e) =>
               e.target.value === '+'

@@ -156,3 +156,14 @@ export type VisibilityRun = {
   platformCount: number
   expectedMinutes: number
 }
+
+const PLATFORM_NAMES: Record<string, string> = {
+  chatgpt: 'ChatGPT',
+  claude: 'Claude',
+  perplexity: 'Perplexity',
+  gemini: 'Gemini',
+}
+
+export function platformName(id: string): string {
+  return PLATFORM_NAMES[id.toLowerCase()] ?? id
+}
