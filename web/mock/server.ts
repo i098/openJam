@@ -266,160 +266,170 @@ const me = () => ({
   project: projects[0] ? { id: projects[0].id, domain: projects[0].domain } : null,
 })
 
+type Body = {
+  name?: string
+  domain?: string
+  text?: string
+  topic?: string
+  paused?: boolean
+  prompts?: Array<{ text: string }>
+}
+type Ctx = { url: URL; body: Body }
+
+const newPrompt = (text: string, topic: string | null = null): Prompt => ({
+  id: crypto.randomUUID(),
+  text,
+  topic,
+  persona: 'discoverer',
+  intent: null,
+  list: 'tracked',
+  status: 'active',
+  branded: false,
+  scored: true,
+})
+
+const login = () =>
+  json({ user: me().user, workspace_id: 'w1', role: 'owner' }, 200, {
+    'set-cookie': 'mock_session=1; Path=/; HttpOnly; SameSite=Lax',
+  })
+const logout = () => json(null, 204, { 'set-cookie': 'mock_session=; Path=/; Max-Age=0' })
+
+function createProject({ body }: Ctx) {
+  const { name = '', domain = '' } = body
+  if (!domain.includes('.'))
+    return fail(400, 'invalid_request', 'domain must be a host name, for example acme.com')
+  const created = {
+    id: crypto.randomUUID(),
+    name,
+    domain,
+    siteUrl: `https://${domain}`,
+    status: 'setup',
+    createdAt: new Date().toISOString(),
+  }
+  projects = [created, ...projects]
+  return json(created, 201)
+}
+
+const startRun = () =>
+  json(
+    {
+      runId: crypto.randomUUID(),
+      projectId: projects[0]?.id ?? '',
+      promptCount: prompts.length,
+      platformCount: ANSWERING.length,
+      expectedMinutes: 8,
+    },
+    202,
+  )
+
+function listPrompts() {
+  const paused = prompts.filter((p) => p.status === 'paused').length
+  return json({ prompts, counts: { tracked: prompts.length, paused, archived: 0 } })
+}
+
+function addPrompt({ body }: Ctx) {
+  const text = String(body.text)
+  const found = prompts.find((p) => p.text === text)
+  if (found)
+    return json({ promptId: found.id, existing: true, activeCount: prompts.length, cap: -1 })
+  const created = newPrompt(text, body.topic ?? null)
+  prompts = [created, ...prompts]
+  return json({ promptId: created.id, existing: false, activeCount: prompts.length, cap: -1 }, 201)
+}
+
+function bulkPrompts({ body }: Ctx) {
+  const created = (body.prompts ?? []).map((item) => newPrompt(item.text))
+  prompts = [...created, ...prompts]
+  return json(
+    {
+      results: created.map((p) => ({ promptId: p.id, created: true })),
+      activeCount: prompts.length,
+      cap: -1,
+    },
+    201,
+  )
+}
+
+function answerPage(prompt: Prompt, { url }: Ctx) {
+  const platform = url.searchParams.get('platform')
+  const cited = url.searchParams.get('cited') === 'true'
+  const limit = Number(url.searchParams.get('limit') ?? 10)
+  const offset = Number(url.searchParams.get('cursor') ?? 0)
+  const all = answersFor(prompt).filter(
+    (a) => (!platform || a.platform === platform) && (!cited || a.ownDomainCited),
+  )
+  const nextCursor = offset + limit < all.length ? String(offset + limit) : null
+  return json({
+    answers: all.slice(offset, offset + limit),
+    pageInfo: {
+      limit,
+      hasNextPage: nextCursor !== null,
+      totalCount: all.length,
+      ...(nextCursor ? { nextCursor } : {}),
+    },
+    nextCursor,
+  })
+}
+
+function promptItem(prompt: Prompt, suffix: string | undefined, method: string, ctx: Ctx) {
+  if (suffix === '/answers') return answerPage(prompt, ctx)
+  if (suffix === '/pause') {
+    prompt.status = ctx.body.paused ? 'paused' : 'active'
+    return json({ promptId: prompt.id, status: prompt.status })
+  }
+  if (method === 'PATCH') {
+    prompt.text = ctx.body.text ?? prompt.text
+    return json({ promptId: prompt.id, changed: true })
+  }
+  if (method === 'DELETE') {
+    prompts = prompts.filter((p) => p.id !== prompt.id)
+    return json({ promptId: prompt.id })
+  }
+  return json(prompt)
+}
+
+const routes: Record<string, (ctx: Ctx) => Response> = {
+  'GET /auth/me': () => json(me()),
+  'GET /v1/projects': () => json({ projects }),
+  'POST /v1/projects': createProject,
+  'GET /v1/brand': () => json({ ok: true }),
+  'PATCH /v1/brand': () => json({ ok: true }),
+  'POST /v1/brand/competitors': () => json({ ok: true }),
+  'POST /v1/visibility-runs': startRun,
+  'GET /v1/analytics/overview': ({ url }) =>
+    json(overview(Number(url.searchParams.get('rangeDays') ?? 30))),
+  'GET /v1/analytics/prompts': () => json(promptAnalytics()),
+  'GET /v1/prompts': listPrompts,
+  'POST /v1/prompts': addPrompt,
+  'POST /v1/prompts/bulk': bulkPrompts,
+}
+
+function handle(request: Request, body: Body): Response {
+  const url = new URL(request.url)
+  const { method } = request
+  if (url.pathname === '/auth/login' || url.pathname === '/auth/signup') return login()
+  if (url.pathname === '/auth/logout') return logout()
+  if (!(request.headers.get('cookie') ?? '').includes('mock_session=1'))
+    return fail(401, 'unauthorized', 'Sign in to continue.')
+  const ctx = { url, body }
+  const route = routes[`${method} ${url.pathname}`]
+  if (route) return route(ctx)
+  const match = url.pathname.match(/^\/v1\/prompts\/([^/]+)(\/answers|\/pause)?$/)
+  if (!match) return fail(501, 'not_implemented', 'This route is not built yet.')
+  const prompt = prompts.find((p) => p.id === match[1])
+  return prompt
+    ? promptItem(prompt, match[2], method, ctx)
+    : fail(404, 'not_found', 'No such prompt.')
+}
+
 Bun.serve({
   port,
   async fetch(request) {
-    const url = new URL(request.url)
-    const path = url.pathname
-    const method = request.method
-    type Body = {
-      name?: string
-      domain?: string
-      text?: string
-      topic?: string
-      paused?: boolean
-      prompts?: Array<{ text: string }>
-    }
     const body: Body =
-      method === 'GET' || method === 'DELETE' ? {} : await request.json().catch(() => ({}))
-    const signedIn = (request.headers.get('cookie') ?? '').includes('mock_session=1')
-
-    if (path === '/auth/login' || path === '/auth/signup') {
-      return json({ user: me().user, workspace_id: 'w1', role: 'owner' }, 200, {
-        'set-cookie': 'mock_session=1; Path=/; HttpOnly; SameSite=Lax',
-      })
-    }
-    if (path === '/auth/logout')
-      return json(null, 204, { 'set-cookie': 'mock_session=; Path=/; Max-Age=0' })
-    if (!signedIn) return fail(401, 'unauthorized', 'Sign in to continue.')
-    if (path === '/auth/me') return json(me())
-
-    if (path === '/v1/projects' && method === 'GET') return json({ projects })
-    if (path === '/v1/projects' && method === 'POST') {
-      const { name = '', domain = '' } = body
-      if (!domain.includes('.'))
-        return fail(400, 'invalid_request', 'domain must be a host name, for example acme.com')
-      const created = {
-        id: crypto.randomUUID(),
-        name,
-        domain,
-        siteUrl: `https://${domain}`,
-        status: 'setup',
-        createdAt: new Date().toISOString(),
-      }
-      projects = [created, ...projects]
-      return json(created, 201)
-    }
-    if (path === '/v1/brand' || path === '/v1/brand/competitors') return json({ ok: true })
-    if (path === '/v1/visibility-runs') {
-      return json(
-        {
-          runId: crypto.randomUUID(),
-          projectId: projects[0]?.id ?? '',
-          promptCount: prompts.length,
-          platformCount: ANSWERING.length,
-          expectedMinutes: 8,
-        },
-        202,
-      )
-    }
-
-    if (path === '/v1/analytics/overview')
-      return json(overview(Number(url.searchParams.get('rangeDays') ?? 30)))
-    if (path === '/v1/analytics/prompts') return json(promptAnalytics())
-
-    if (path === '/v1/prompts' && method === 'GET') {
-      const paused = prompts.filter((p) => p.status === 'paused').length
-      return json({ prompts, counts: { tracked: prompts.length, paused, archived: 0 } })
-    }
-    if (path === '/v1/prompts' && method === 'POST') {
-      const text = String(body.text)
-      const found = prompts.find((p) => p.text === text)
-      if (found)
-        return json({ promptId: found.id, existing: true, activeCount: prompts.length, cap: -1 })
-      const created: Prompt = {
-        id: crypto.randomUUID(),
-        text,
-        topic: body.topic ?? null,
-        persona: 'discoverer',
-        intent: null,
-        list: 'tracked',
-        status: 'active',
-        branded: false,
-        scored: true,
-      }
-      prompts = [created, ...prompts]
-      return json(
-        { promptId: created.id, existing: false, activeCount: prompts.length, cap: -1 },
-        201,
-      )
-    }
-    if (path === '/v1/prompts/bulk') {
-      const items = body.prompts ?? []
-      const created = items.map(
-        (item): Prompt => ({
-          id: crypto.randomUUID(),
-          text: item.text,
-          topic: null,
-          persona: 'discoverer',
-          intent: null,
-          list: 'tracked',
-          status: 'active',
-          branded: false,
-          scored: true,
-        }),
-      )
-      prompts = [...created, ...prompts]
-      return json(
-        {
-          results: created.map((p) => ({ promptId: p.id, created: true })),
-          activeCount: prompts.length,
-          cap: -1,
-        },
-        201,
-      )
-    }
-
-    const match = path.match(/^\/v1\/prompts\/([^/]+)(\/answers|\/pause)?$/)
-    if (match) {
-      const prompt = prompts.find((p) => p.id === match[1])
-      if (!prompt) return fail(404, 'not_found', 'No such prompt.')
-      if (match[2] === '/answers') {
-        const platform = url.searchParams.get('platform')
-        const cited = url.searchParams.get('cited') === 'true'
-        const limit = Number(url.searchParams.get('limit') ?? 10)
-        const offset = Number(url.searchParams.get('cursor') ?? 0)
-        const all = answersFor(prompt).filter(
-          (a) => (!platform || a.platform === platform) && (!cited || a.ownDomainCited),
-        )
-        const page = all.slice(offset, offset + limit)
-        const nextCursor = offset + limit < all.length ? String(offset + limit) : null
-        return json({
-          answers: page,
-          pageInfo: {
-            limit,
-            hasNextPage: nextCursor !== null,
-            totalCount: all.length,
-            ...(nextCursor ? { nextCursor } : {}),
-          },
-          nextCursor,
-        })
-      }
-      if (match[2] === '/pause') {
-        prompt.status = body.paused ? 'paused' : 'active'
-        return json({ promptId: prompt.id, status: prompt.status })
-      }
-      if (method === 'PATCH') {
-        prompt.text = body.text ?? prompt.text
-        return json({ promptId: prompt.id, changed: true })
-      }
-      if (method === 'DELETE') {
-        prompts = prompts.filter((p) => p.id !== prompt.id)
-        return json({ promptId: prompt.id })
-      }
-      return json(prompt)
-    }
-    return fail(501, 'not_implemented', 'This route is not built yet.')
+      request.method === 'GET' || request.method === 'DELETE'
+        ? {}
+        : await request.json().catch(() => ({}))
+    return handle(request, body)
   },
 })
 console.log(`openJam mock API on http://127.0.0.1:${port}${empty ? ' (empty workspace)' : ''}`)
