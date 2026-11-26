@@ -5,7 +5,7 @@ questions, find where you are missing, and ship the fixes.
 
 ## Install
 
-1. `cp .env.example .env` (optional; the defaults work).
+1. `cp .env.example .env` (optional; the defaults work). Every variable is in [docs/install.md](docs/install.md).
 2. `docker compose up -d --build`.
 3. Open <http://localhost:8080> and create an account.
 
@@ -15,12 +15,14 @@ Then create an API key in the dashboard and call `GET /v1/projects`:
 curl -H "Authorization: Bearer sk_..." http://localhost:8080/v1/projects
 ```
 
+Upgrade, backup, restore, health checks and metrics: [docs/install.md](docs/install.md).
+
 ## What runs
 
 | Service | What it does |
 |---|---|
 | `web` | SPA and one nginx origin. It proxies `/v1`, `/auth`, `/healthz` and `/openapi.json` to the API. |
-| `api` | Rust API: sessions, API keys, the `/v1` contract, migrations on start. |
+| `api` | Rust API: sessions, API keys, the `/v1` contract, migrations on start, `/healthz`, `/readyz`, `/metrics`. |
 | `worker` | Rust job worker: claims Postgres jobs, retries with backoff, keeps a minute tick. |
 | `db` | Postgres 16. Migrations in `migrations/`. |
 

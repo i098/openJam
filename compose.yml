@@ -26,6 +26,7 @@ services:
       OPENJAM_SESSION_DAYS: ${OPENJAM_SESSION_DAYS:-30}
       # No scan limit by default. Set a number to cap scans per UTC day, per workspace.
       OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
+      OPENJAM_LOG_FORMAT: ${OPENJAM_LOG_FORMAT:-json}
       RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       db:

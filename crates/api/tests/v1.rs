@@ -183,3 +183,21 @@ async fn rejects_bad_requests(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::OK);
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn readyz_and_metrics(pool: PgPool) {
+    let app = app(pool);
+    let get = |uri: &str| Request::builder().uri(uri).body(Body::empty()).unwrap();
+
+    let (status, _, body) = send(&app, get("/readyz")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["database"], "up");
+
+    let response = app.clone().oneshot(get("/metrics")).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let text = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(text.contains("openjam_db_up 1"));
+    assert!(text.contains("openjam_jobs{status=\"queued\"} 0"));
+    assert!(text.contains("openjam_http_requests_total{class=\"2xx\"}"));
+}
