@@ -1,6 +1,9 @@
+pub mod brand;
 pub mod keys;
 pub mod meta;
 pub mod projects;
+pub mod prompts;
+pub mod runs;
 pub mod stubs;
 
 use crate::{
@@ -29,6 +32,30 @@ pub fn build() -> (Router<AppState>, utoipa::openapi::OpenApi) {
             keys::create_api_key
         ))
         .routes(utoipa_axum::routes!(keys::revoke_api_key))
+        // M1 tracking: the brand, the prompts and the scans the dashboard reads.
+        // One path per `routes!` call: a call adds every method to every path it lists.
+        .routes(utoipa_axum::routes!(brand::get_brand, brand::update_brand))
+        .routes(utoipa_axum::routes!(
+            brand::list_brand_competitors,
+            brand::add_brand_competitors
+        ))
+        .routes(utoipa_axum::routes!(
+            prompts::list_prompts,
+            prompts::add_prompt
+        ))
+        .routes(utoipa_axum::routes!(prompts::add_prompts_bulk))
+        .routes(utoipa_axum::routes!(prompts::get_prompt_cap))
+        .routes(utoipa_axum::routes!(
+            prompts::get_prompt,
+            prompts::edit_prompt,
+            prompts::remove_prompt
+        ))
+        .routes(utoipa_axum::routes!(prompts::pause_prompt))
+        .routes(utoipa_axum::routes!(
+            runs::create_visibility_run,
+            runs::list_visibility_runs
+        ))
+        .routes(utoipa_axum::routes!(runs::get_visibility_run))
         .routes(utoipa_axum::routes!(analytics::get_analytics_overview))
         .routes(utoipa_axum::routes!(analytics::list_prompt_analytics))
         .routes(utoipa_axum::routes!(analytics::list_analytics_metrics))

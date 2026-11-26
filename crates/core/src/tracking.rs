@@ -199,10 +199,19 @@ pub async fn start_scan(
             calls.push(call);
         }
     }
-    sqlx::query("UPDATE projects SET last_scan_at = now(), first_scan_at = COALESCE(first_scan_at, now()) WHERE id = $1")
-        .bind(project_id)
-        .execute(&mut *tx)
-        .await?;
+    // The first scan makes the project live, so the cadence scheduler picks it up next.
+    sqlx::query(
+        "UPDATE projects SET status = CASE WHEN status = 'setup' THEN 'active' ELSE status END,
+                           next_scan_at = CASE WHEN status = 'setup' AND next_scan_at IS NULL
+                               THEN now() + CASE cadence WHEN 'weekly' THEN interval '7 days'
+                                   WHEN 'every_other_day' THEN interval '2 days' ELSE interval '1 day' END
+                               ELSE next_scan_at END,
+                           last_scan_at = now(), first_scan_at = COALESCE(first_scan_at, now())
+         WHERE id = $1",
+    )
+    .bind(project_id)
+    .execute(&mut *tx)
+    .await?;
     tx.commit().await?;
 
     usage::record(

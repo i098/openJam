@@ -165,7 +165,7 @@ async fn rejects_bad_requests(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::OK);
     let mut stub = Request::builder()
-        .uri("/v1/brand")
+        .uri("/v1/billing")
         .body(Body::empty())
         .unwrap();
     stub.headers_mut()
@@ -201,4 +201,134 @@ async fn readyz_and_metrics(pool: PgPool) {
     assert!(text.contains("openjam_db_up 1"));
     assert!(text.contains("openjam_jobs{status=\"queued\"} 0"));
     assert!(text.contains("openjam_http_requests_total{class=\"2xx\"}"));
+}
+
+/// The dashboard's first-run path: brand, competitors, prompts, then a scan.
+#[sqlx::test(migrations = "../../migrations")]
+async fn brand_prompts_and_scan(pool: PgPool) {
+    let app = app(pool);
+    let (status, cookie, body) = send(
+        &app,
+        json_request(
+            "POST",
+            "/auth/signup",
+            json!({"email":"a@b.co","password":"hunter22","name":"A"}),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "signup: {body}");
+    let cookie = cookie.expect("session cookie");
+
+    let mut key_request = json_request("POST", "/v1/api-keys", json!({"name":"laptop"}));
+    key_request
+        .headers_mut()
+        .insert(header::COOKIE, cookie.parse().unwrap());
+    let (status, _, body) = send(&app, key_request).await;
+    assert_eq!(status, StatusCode::CREATED, "create key: {body}");
+    let key = body["key"].as_str().unwrap().to_string();
+
+    let mut create = json_request(
+        "POST",
+        "/v1/projects",
+        json!({"name":"Acme","domain":"acme.com"}),
+    );
+    create.headers_mut().insert(
+        header::AUTHORIZATION,
+        format!("Bearer {key}").parse().unwrap(),
+    );
+    let (status, _, body) = send(&app, create).await;
+    assert_eq!(status, StatusCode::CREATED, "create project: {body}");
+
+    let call = |method: &str, uri: &str, body: Value| {
+        let mut request = json_request(method, uri, body);
+        request.headers_mut().insert(
+            header::AUTHORIZATION,
+            format!("Bearer {key}").parse().unwrap(),
+        );
+        request
+    };
+
+    let (status, _, body) = send(
+        &app,
+        call("PATCH", "/v1/brand", json!({"positioning":"Fast bikes"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "brand: {body}");
+    assert_eq!(body["version"], 1, "first version: {body}");
+    assert_eq!(body["positioning"], "Fast bikes");
+
+    let (status, _, body) = send(
+        &app,
+        call(
+            "POST",
+            "/v1/brand/competitors",
+            json!({"competitors":["Canyon"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "competitors: {body}");
+    assert_eq!(body["competitors"][0]["name"], "Canyon");
+
+    let (status, _, body) = send(
+        &app,
+        call(
+            "POST",
+            "/v1/prompts/bulk",
+            json!({"prompts":[
+                {"text":"best commuter ebike","topic":"buying"},
+                {"text":"best commuter ebike"}
+            ]}),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "bulk prompts: {body}");
+    assert_eq!(body["added"], 1, "one duplicate skipped: {body}");
+    assert_eq!(body["existing"], 1);
+
+    let (status, _, body) = send(&app, call("GET", "/v1/prompts", json!(null))).await;
+    assert_eq!(status, StatusCode::OK, "list prompts: {body}");
+    assert_eq!(body["prompts"].as_array().unwrap().len(), 1);
+    assert_eq!(body["counts"]["tracked"], 1);
+    let prompt_id = body["prompts"][0]["id"].as_str().unwrap().to_string();
+
+    // A paused-only project cannot start a scan.
+    let pause = call(
+        "POST",
+        &format!("/v1/prompts/{prompt_id}/pause"),
+        json!({"paused":true}),
+    );
+    let (status, _, body) = send(&app, pause).await;
+    assert_eq!(status, StatusCode::OK, "pause: {body}");
+    assert_eq!(body["status"], "paused");
+    let (status, _, body) = send(&app, call("POST", "/v1/visibility-runs", json!({}))).await;
+    assert_eq!(status, StatusCode::CONFLICT, "no active prompts: {body}");
+
+    let resume = call(
+        "POST",
+        &format!("/v1/prompts/{prompt_id}/pause"),
+        json!({"paused":false}),
+    );
+    let (status, _, body) = send(&app, resume).await;
+    assert_eq!(status, StatusCode::OK, "resume: {body}");
+    assert_eq!(body["status"], "active");
+
+    let (status, _, body) = send(&app, call("POST", "/v1/visibility-runs", json!({}))).await;
+    assert_eq!(status, StatusCode::ACCEPTED, "start scan: {body}");
+    assert_eq!(body["promptCount"], 1);
+    assert_eq!(body["platformCount"], 3);
+    let run_id = body["runId"].as_str().unwrap().to_string();
+    let (status, _, body) = send(
+        &app,
+        call("GET", &format!("/v1/visibility-runs/{run_id}"), json!(null)),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "get run: {body}");
+    assert_eq!(body["status"], "running");
+
+    // The first scan makes the project live for the scheduler.
+    let (_, _, body) = send(&app, call("GET", "/v1/projects", json!(null))).await;
+    assert_eq!(
+        body["projects"][0]["status"], "active",
+        "project went live: {body}"
+    );
 }
