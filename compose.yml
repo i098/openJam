@@ -47,9 +47,41 @@ services:
       DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/openjam
       OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
       RUST_LOG: ${RUST_LOG:-info}
+      RUNNER_SHARED_SECRET: ${RUNNER_SHARED_SECRET:-}
+      OPENJAM_RUNNER_URL: http://runner:8080
+    volumes:
+      - secrets:/var/lib/openjam
+    networks:
+      - default
+      - runner-net
     depends_on:
       api:
         condition: service_healthy
+
+  # Runs the unmodified Claude Code CLI for Claude plan accounts. Off by default:
+  #   RUNNER_SHARED_SECRET=... OPENJAM_CLAUDE_VERSION=<pinned version> docker compose --profile claude up -d --build
+  # Sign a subscription in: docker compose --profile claude run --rm -it runner claude-login "<label>"
+  runner:
+    profiles: ["claude"]
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        OPENJAM_CLAUDE_VERSION: ${OPENJAM_CLAUDE_VERSION:-}
+    environment:
+      RUNNER_SHARED_SECRET: ${RUNNER_SHARED_SECRET:-}
+      RUNNER_MAX_RUN_SECS: 120
+      RUST_LOG: ${RUST_LOG:-info}
+    volumes:
+      - claude-logins:/claude-logins
+    networks:
+      - runner-net
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
   web:
     build:
@@ -62,3 +94,11 @@ services:
 
 volumes:
   pgdata:
+  # The key that seals engine secrets. Back it up: without it, saved API keys and sign-ins do not open.
+  secrets:
+  # One folder per Claude subscription login. Only the runner mounts it.
+  claude-logins:
+
+networks:
+  # The worker and the runner only. The runner has no published port and no database.
+  runner-net:

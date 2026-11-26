@@ -1,0 +1,22 @@
+#!/bin/sh
+# Sign a new Claude subscription in to the runner.
+# Usage: claude-login "<label>"
+# It makes /claude-logins/<slug>-<4 hex>, writes the label, then runs `claude auth login`.
+set -eu
+
+if [ "$#" -ne 1 ] || [ -z "$1" ]; then
+    echo 'usage: claude-login "<label>"' >&2
+    exit 2
+fi
+label=$1
+logins=${RUNNER_LOGINS_DIR:-/claude-logins}
+
+slug=$(printf '%s' "$label" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//' | cut -c1-40)
+[ -n "$slug" ] || slug=account
+hex=$(od -An -N2 -tx1 /dev/urandom | tr -d ' \n')
+folder="$logins/$slug-$hex"
+
+mkdir -m 700 "$folder"
+printf '%s\n' "$label" > "$folder/.openjam-label"
+echo "Folder: $folder"
+CLAUDE_CONFIG_DIR=$folder DISABLE_AUTOUPDATER=1 exec claude auth login

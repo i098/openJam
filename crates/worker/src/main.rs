@@ -1,17 +1,19 @@
-//! The job worker: claims Postgres jobs, retries with backoff, and keeps a minute tick.
+//! The worker binary: job loop, minute maintenance, the scan scheduler and plan-token refresh.
 
-use openjam_core::{
-    config::Config,
-    db,
-    jobs::{self, FailOutcome},
+use openjam_core::{config::Config, db};
+use openjam_engines::{
+    Engine, Provider, Router, Secret,
+    claude::ClaudePlanEngine,
+    key::KeyEngine,
+    pool::Pool,
+    router::JudgeModels,
+    secrets::Keyring,
+    siwc::{OpenaiPlanEngine, Siwc, SiwcConfig},
 };
-use sqlx::PgPool;
-use std::time::Duration;
+use openjam_worker::{STALE_SECS, Services, WORKER_QUEUES, run_one, schedule_tick};
+use std::{path::Path, sync::Arc, time::Duration};
 
-const MAINTENANCE: &str = "maintenance";
-const WORKER_QUEUES: &[&str] = &["scan", MAINTENANCE];
-/// A job still `running` after this long lost its worker.
-const STALE_SECS: i64 = 120;
+const DEFAULT_KEY_FILE: &str = "/var/lib/openjam/master.key";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,68 +22,93 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let config = Config::from_env().map_err(|e| e.to_string())?;
-    let pool = db::connect(&config.database_url)
+    let db = db::connect(&config.database_url)
         .await
         .map_err(|e| e.to_string())?;
-    db::migrate(&pool).await.map_err(|e| e.to_string())?;
+    db::migrate(&db).await.map_err(|e| e.to_string())?;
+
+    let key_file =
+        std::env::var("OPENJAM_MASTER_KEY_FILE").unwrap_or_else(|_| DEFAULT_KEY_FILE.into());
+    let keyring = Arc::new(
+        Keyring::load(&db, Path::new(&key_file))
+            .await
+            .map_err(|e| e.to_string())?,
+    );
+    let pool = Pool::new(db.clone(), keyring);
+    let siwc = Arc::new(Siwc::new(pool.clone(), SiwcConfig::from_env()));
+
+    let mut engines: Vec<Arc<dyn Engine>> = [
+        Provider::Openai,
+        Provider::Claude,
+        Provider::Perplexity,
+        Provider::Gemini,
+    ]
+    .into_iter()
+    .map(|p| Arc::new(KeyEngine::new(p, None)) as Arc<dyn Engine>)
+    .collect();
+    engines.push(Arc::new(OpenaiPlanEngine::new(siwc.clone())));
+    match (env("OPENJAM_RUNNER_URL"), env("RUNNER_SHARED_SECRET")) {
+        (Some(url), Some(secret)) => {
+            engines.push(Arc::new(ClaudePlanEngine::new(&url, Secret::new(secret))))
+        }
+        _ => tracing::info!("OPENJAM_RUNNER_URL is not set: Claude plan accounts are off"),
+    }
+
+    let svc = Arc::new(Services {
+        pool: db.clone(),
+        router: Router::new(pool, engines, JudgeModels::from_env()),
+        scan_cap_per_day: config.scan_cap_per_day,
+    });
 
     let worker_id = format!("worker-{}", std::process::id());
     tracing::info!("{worker_id} watching {WORKER_QUEUES:?}");
-    spawn_maintenance(pool.clone());
+    spawn_every(Duration::from_secs(30), svc.clone(), |svc| async move {
+        match schedule_tick(&svc, chrono::Utc::now()).await {
+            Ok(started) if !started.is_empty() => {
+                tracing::info!(runs = started.len(), "scans started")
+            }
+            Ok(_) => {}
+            Err(e) => tracing::error!(%e, "scheduler tick failed"),
+        }
+    });
+    spawn_every(Duration::from_secs(60), svc.clone(), move |svc| {
+        let siwc = siwc.clone();
+        async move {
+            if let Err(e) = openjam_core::jobs::requeue_stale(&svc.pool, STALE_SECS).await {
+                tracing::error!(%e, "requeue failed");
+            }
+            if let Err(e) = siwc.refresh_due().await {
+                tracing::error!(%e, "token refresh failed");
+            }
+        }
+    });
 
     loop {
-        match jobs::claim(&pool, WORKER_QUEUES, &worker_id).await {
-            Ok(Some(job)) => {
-                let result = run(&pool, &job.queue, &job.payload).await;
-                match result {
-                    Ok(()) => jobs::complete(&pool, job.id).await?,
-                    Err(error) => match jobs::fail(&pool, &job, &error).await? {
-                        FailOutcome::Retry { run_at } => {
-                            tracing::warn!(queue = %job.queue, %error, %run_at, "retrying")
-                        }
-                        FailOutcome::Dead => {
-                            tracing::error!(queue = %job.queue, %error, "job is dead")
-                        }
-                    },
-                }
-            }
-            Ok(None) => tokio::time::sleep(Duration::from_millis(500)).await,
+        match run_one(&svc, &worker_id).await {
+            Ok(true) => {}
+            Ok(false) => tokio::time::sleep(Duration::from_millis(500)).await,
             Err(error) => {
-                tracing::error!(%error, "claim failed");
+                tracing::error!(%error, "job loop failed");
                 tokio::time::sleep(Duration::from_secs(5)).await;
             }
         }
     }
 }
 
-/// Free jobs from a lost worker, every minute. One task, so the rate does not depend on job sleep.
-fn spawn_maintenance(pool: PgPool) {
-    tokio::spawn(async move {
-        let mut tick = tokio::time::interval(Duration::from_secs(60));
-        loop {
-            tick.tick().await;
-            match jobs::requeue_stale(&pool, STALE_SECS).await {
-                Ok(0) => {}
-                Ok(freed) => tracing::warn!(freed, "requeued jobs from a lost worker"),
-                Err(error) => tracing::error!(%error, "requeue failed"),
-            }
-        }
-    });
+fn env(name: &str) -> Option<String> {
+    std::env::var(name).ok().filter(|v| !v.trim().is_empty())
 }
 
-async fn run(pool: &PgPool, queue: &str, payload: &serde_json::Value) -> Result<(), String> {
-    match queue {
-        MAINTENANCE => {
-            let freed = jobs::requeue_stale(pool, STALE_SECS)
-                .await
-                .map_err(|e| e.to_string())?;
-            if freed > 0 {
-                tracing::warn!(freed, "requeued jobs from a lost worker");
-            }
-            Ok(())
+fn spawn_every<F, Fut>(period: Duration, svc: Arc<Services>, task: F)
+where
+    F: Fn(Arc<Services>) -> Fut + Send + 'static,
+    Fut: Future<Output = ()> + Send,
+{
+    tokio::spawn(async move {
+        let mut tick = tokio::time::interval(period);
+        loop {
+            tick.tick().await;
+            task(svc.clone()).await;
         }
-        other => Err(format!(
-            "no handler for queue {other} in this build (payload {payload}); its slice adds one"
-        )),
-    }
+    });
 }

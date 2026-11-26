@@ -1,0 +1,26 @@
+FROM rust:1-bookworm AS build
+WORKDIR /src
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY migrations ./migrations
+RUN cargo build --release -p openjam-runner
+
+FROM debian:bookworm-slim
+# The pinned, unmodified Claude Code CLI version. Set it at build time.
+ARG OPENJAM_CLAUDE_VERSION
+RUN test -n "$OPENJAM_CLAUDE_VERSION" || { echo "set --build-arg OPENJAM_CLAUDE_VERSION" >&2; exit 1; }
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+# Anthropic's native installer puts the binary under ~/.local; copy the real file out.
+RUN curl -fsSL https://claude.ai/install.sh | bash -s "$OPENJAM_CLAUDE_VERSION" \
+    && cp -L /root/.local/bin/claude /usr/local/bin/claude \
+    && rm -rf /root/.local /root/.claude /root/.claude.json \
+    && claude --version
+RUN useradd --create-home --uid 10001 runner \
+    && mkdir /claude-logins && chown runner:runner /claude-logins
+COPY --chmod=0755 docker/runner/claude-login /usr/local/bin/claude-login
+ENV DISABLE_AUTOUPDATER=1
+USER runner
+VOLUME /claude-logins
+EXPOSE 8080
+CMD ["openjam-runner"]
