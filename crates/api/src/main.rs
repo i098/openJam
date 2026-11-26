@@ -21,6 +21,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map_err(|e| e.to_string())?;
     db::migrate(&pool).await.map_err(|e| e.to_string())?;
 
+    // Fans events out to the inbox and webhooks, and sends the webhook deliveries.
+    openjam_api::dispatch::spawn(pool.clone());
     let bind = config.bind.clone();
     let state = AppState {
         pool,
