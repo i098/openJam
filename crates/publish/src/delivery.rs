@@ -56,6 +56,11 @@ pub async fn schedule(
     automatic: bool,
 ) -> Result<Uuid> {
     let mut tx = pool.begin().await?;
+    // One schedule at a time per content item, so a double submit cannot make two deliveries.
+    sqlx::query("SELECT id FROM contents WHERE id = $1 FOR UPDATE")
+        .bind(content_id)
+        .execute(&mut *tx)
+        .await?;
     let in_review: bool = sqlx::query_scalar(
         "SELECT EXISTS (SELECT 1 FROM deliveries
                         WHERE content_id = $1 AND destination_id = $2 AND status = 'in_review')",
@@ -184,6 +189,8 @@ struct Row {
     pr_number: Option<i32>,
     attempted_at: Option<DateTime<Utc>>,
     config: Value,
+    /// The destination's config at the moment the pull request opened, if it has opened.
+    delivery_config: Option<Value>,
     content_state: String,
     current_revision_id: Option<Uuid>,
     site_url: String,
@@ -199,7 +206,8 @@ pub async fn run(
 ) -> Result<Step, String> {
     let row: Option<Row> = sqlx::query_as(
         "SELECT d.status, d.content_id, d.destination_id, d.branch, d.pr_number, d.attempted_at,
-                dest.config, c.state AS content_state, c.current_revision_id, p.site_url
+                dest.config, d.config AS delivery_config, c.state AS content_state,
+                c.current_revision_id, p.site_url
          FROM deliveries d
          JOIN destinations dest ON dest.id = d.destination_id
          JOIN contents c ON c.id = d.content_id
@@ -279,7 +287,7 @@ async fn repo_for(
     app: Option<&App>,
     row: &Row,
 ) -> std::result::Result<(Repo, GithubConfig), StepError> {
-    let config = GithubConfig::from_value(&row.config)
+    let config = GithubConfig::from_value(row.delivery_config.as_ref().unwrap_or(&row.config))
         .ok_or_else(|| StepError::Data("the destination has no GitHub repository".into()))?;
     let app = app.ok_or(GithubError::NotConfigured)?;
     let repo = app
@@ -349,28 +357,44 @@ async fn open_pr(pool: &PgPool, app: Option<&App>, id: Uuid, row: &Row) -> StepR
             &body,
         )
         .await?;
-    sqlx::query(
-        "UPDATE deliveries SET status = 'in_review', pr_url = $2, pr_number = $3, branch = $4, error = NULL
+    let kept = sqlx::query(
+        "UPDATE deliveries
+         SET status = 'in_review', pr_url = $2, pr_number = $3, branch = $4, error = NULL,
+             config = $5
          WHERE id = $1 AND status = 'scheduled'",
     )
     .bind(id)
     .bind(&pr.url)
     .bind(pr.number)
     .bind(&branch)
+    .bind(&row.config)
     .execute(pool)
     .await?;
+    if kept.rows_affected() == 0 {
+        // A newer schedule cancelled this delivery while the pull request was opening.
+        repo.withdraw(pr.number, &branch).await?;
+        return Ok(Step::Done);
+    }
     set_connection(pool, row.destination_id, None).await?;
     Ok(Step::RetryAt(Utc::now() + poll_after(Duration::zero())))
 }
 
 async fn sync_pr(pool: &PgPool, app: Option<&App>, id: Uuid, row: &Row) -> StepResult {
+    let age = Utc::now() - row.attempted_at.unwrap_or_else(Utc::now);
     let number = row
         .pr_number
         .ok_or_else(|| StepError::Data("the delivery has no pull request".into()))?;
-    let (repo, config) = repo_for(app, row).await?;
-    let pr = repo.pr(number).await?;
+    let (repo, config) = match repo_for(app, row).await {
+        Ok((repo, config)) => (repo, config),
+        Err(e) if !e.is_permanent() => return Ok(Step::RetryAt(Utc::now() + poll_after(age))),
+        Err(e) => return Err(e),
+    };
+    let pr = match repo.pr(number).await {
+        Ok(pr) => pr,
+        Err(e) if !e.is_permanent() => return Ok(Step::RetryAt(Utc::now() + poll_after(age))),
+        Err(e) => return Err(e.into()),
+    };
     if pr.open {
-        let age = Utc::now() - row.attempted_at.unwrap_or_else(Utc::now);
         return Ok(Step::RetryAt(Utc::now() + poll_after(age)));
     }
     if !pr.merged {
@@ -478,7 +502,8 @@ pub async fn auto_publish_tick(pool: &PgPool, now: DateTime<Utc>) -> Result<usiz
             "SELECT c.id FROM contents c JOIN content_revisions r ON r.id = c.current_revision_id
              WHERE c.project_id = $1 AND c.state = 'drafted' AND NOT r.needs_review
                AND NOT EXISTS (SELECT 1 FROM deliveries d WHERE d.content_id = c.id
-                               AND d.destination_id = $2 AND d.status IN ('scheduled', 'in_review', 'live'))
+                               AND d.destination_id = $2
+                               AND d.status IN ('scheduled', 'in_review', 'live', 'cancelled'))
                AND NOT EXISTS (SELECT 1 FROM publications p WHERE p.content_id = c.id)
              ORDER BY c.created_at LIMIT 1",
         )

@@ -101,6 +101,8 @@ pub struct App {
     key: EncodingKey,
     algorithm: Algorithm,
     api: String,
+    /// When set, destinations may name only these repositories. The operator sets this.
+    repos: Option<Vec<String>>,
 }
 
 impl App {
@@ -122,7 +124,16 @@ impl App {
         let key = EncodingKey::from_rsa_pem(pem.as_bytes())
             .map_err(|e| GithubError::Key(e.to_string()))?;
         let api = var("OPENJAM_GITHUB_API_URL").unwrap_or_else(|| DEFAULT_API.into());
-        Ok(Some(Self::new(id, key, Algorithm::RS256, &api)))
+        let repos = var("OPENJAM_GITHUB_REPOS").map(|list| {
+            list.split(',')
+                .map(|r| r.trim().to_lowercase())
+                .filter(|r| !r.is_empty())
+                .collect()
+        });
+        Ok(Some(Self {
+            repos,
+            ..Self::new(id, key, Algorithm::RS256, &api)
+        }))
     }
 
     pub fn new(id: String, key: EncodingKey, algorithm: Algorithm, api: &str) -> Self {
@@ -131,7 +142,24 @@ impl App {
             key,
             algorithm,
             api: api.trim_end_matches('/').to_owned(),
+            repos: None,
         }
+    }
+
+    /// Allow only the repositories in `list` (`owner/name`). Tests use it; `from_env` reads
+    /// `OPENJAM_GITHUB_REPOS`.
+    pub fn restricted_to(mut self, list: Vec<String>) -> Self {
+        self.repos = Some(list.iter().map(|r| r.trim().to_lowercase()).collect());
+        self
+    }
+
+    /// Whether a workspace may connect this repository. No list: any repository the app can
+    /// reach, as the operator installed it.
+    pub fn allows(&self, owner: &str, name: &str) -> bool {
+        self.repos.as_ref().is_none_or(|list| {
+            list.iter()
+                .any(|r| r == &format!("{}/{name}", owner.to_lowercase()))
+        })
     }
 
     fn jwt(&self) -> Result<String> {

@@ -245,9 +245,13 @@ pub async fn update_destination(
                 .execute(&mut *tx)
                 .await?;
             }
-            // The next worker tick publishes a draft; the cadence counts from then on.
+            // A first turn-on lets the next worker tick publish at once; a repeat keeps the
+            // period it already counted from.
             sqlx::query(
-                "UPDATE destinations SET auto_publish = true, last_auto_at = NULL WHERE id = $1",
+                "UPDATE destinations
+                 SET auto_publish = true,
+                     last_auto_at = CASE WHEN auto_publish THEN last_auto_at END
+                 WHERE id = $1",
             )
             .bind(id)
             .execute(&mut *tx)
@@ -367,6 +371,26 @@ pub async fn configure_destination_github(
             "GitHub publishing is off: set OPENJAM_GITHUB_APP_ID and the app's private key",
         )
     })?;
+    if !app.allows(owner, name) {
+        return Err(ApiError::bad(format!(
+            "the operator does not allow {owner}/{name}: it is not in OPENJAM_GITHUB_REPOS"
+        )));
+    }
+    let taken: bool = sqlx::query_scalar(
+        "SELECT EXISTS (SELECT 1 FROM destinations
+                        WHERE id <> $3 AND lower(config ->> 'owner') = lower($1)
+                          AND lower(config ->> 'name') = lower($2))",
+    )
+    .bind(owner)
+    .bind(name)
+    .bind(id)
+    .fetch_one(&state.pool)
+    .await?;
+    if taken {
+        return Err(ApiError(Error::Conflict(format!(
+            "another destination already publishes to {owner}/{name}"
+        ))));
+    }
     let installation = app
         .installation(owner, name)
         .await

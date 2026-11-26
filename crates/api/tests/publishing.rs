@@ -145,6 +145,10 @@ impl Client {
     }
 }
 
+fn make_article(opp: Uuid, slug: &str) -> Value {
+    json!({"opportunityId": opp, "article": article(slug, "## A\n\ntext")})
+}
+
 fn article(slug: &str, body: &str) -> Value {
     json!({
         "title": "How GEO works",
@@ -156,6 +160,10 @@ fn article(slug: &str, body: &str) -> Value {
 }
 
 async fn setup(pool: PgPool, github: Option<Arc<App>>) -> (Client, Uuid) {
+    setup_as(pool, github, "a@b.co").await
+}
+
+async fn setup_as(pool: PgPool, github: Option<Arc<App>>, email: &str) -> (Client, Uuid) {
     let config = Config {
         database_url: String::new(),
         bind: String::new(),
@@ -174,7 +182,7 @@ async fn setup(pool: PgPool, github: Option<Arc<App>>) -> (Client, Uuid) {
         .uri("/auth/signup")
         .header(header::CONTENT_TYPE, "application/json")
         .body(Body::from(
-            json!({"email": "a@b.co", "password": "hunter22"}).to_string(),
+            json!({"email": email, "password": "hunter22"}).to_string(),
         ))
         .unwrap();
     let response = app.clone().oneshot(signup).await.unwrap();
@@ -311,6 +319,30 @@ async fn content_revisions_discard_and_markdown(pool: PgPool) {
     assert_eq!(status, StatusCode::NO_CONTENT);
     let (_, content, _) = client.call("GET", &format!("/v1/content/{id}"), None).await;
     assert_eq!(content["content"]["state"], "drafted");
+
+    // A newer draft for the same opportunity blocks restoring the older one.
+    let (_, _, _) = client
+        .call("DELETE", &format!("/v1/content/{id}"), None)
+        .await;
+    let (status, newer, _) = client
+        .call("POST", "/v1/content", Some(make_article(opp, "newer-post")))
+        .await;
+    assert_eq!(status, StatusCode::CREATED, "{newer}");
+    let (status, body, _) = client
+        .call("POST", &format!("/v1/content/{id}/restorations"), None)
+        .await;
+    assert_eq!(status, StatusCode::CONFLICT, "{body}");
+    let newer: Uuid = newer["contentId"].as_str().unwrap().parse().unwrap();
+    let (_, restored, _) = client.call("GET", &format!("/v1/content/{id}"), None).await;
+    assert_eq!(restored["content"]["state"], "discarded");
+    // Once the newer draft is gone, the restore works.
+    client
+        .call("DELETE", &format!("/v1/content/{newer}"), None)
+        .await;
+    let (status, _, _) = client
+        .call("POST", &format!("/v1/content/{id}/restorations"), None)
+        .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
 
     // A rewrite request is accepted and queued for the worker.
     let (status, _, _) = client
@@ -531,4 +563,134 @@ async fn withdrawing_closes_the_pull_request(pool: PgPool) {
         .await
         .unwrap();
     assert_eq!(status, "cancelled");
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn repository_allowlist_and_one_claim(pool: PgPool) {
+    let hub = Shared::default();
+    let url = fake_github(hub).await;
+    let github = Arc::new(
+        App::new(
+            "1".into(),
+            EncodingKey::from_secret(b"test"),
+            Algorithm::HS256,
+            &url,
+        )
+        .restricted_to(vec!["acme/site".into()]),
+    );
+    let connect = |dest: &str, owner: &str, name: &str| {
+        (
+            format!("/v1/destinations/{dest}/github"),
+            json!({
+                "owner": owner, "name": name, "baseBranch": "main",
+                "contentRoot": "content/blog", "publicRoutePattern": "/blog/{slug}",
+            }),
+        )
+    };
+    let (client, _) = setup(pool.clone(), Some(github.clone())).await;
+    let (_, dest, _) = client
+        .call(
+            "POST",
+            "/v1/destinations",
+            Some(json!({"platform": "github"})),
+        )
+        .await;
+    let dest = dest["destinationId"].as_str().unwrap().to_owned();
+
+    // A repository the operator did not allow is refused before GitHub is called.
+    let (uri, body) = connect(&dest, "other", "repo");
+    let (status, answer, _) = client.call("PUT", &uri, Some(body)).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{answer}");
+
+    let (uri, body) = connect(&dest, "acme", "site");
+    let (status, answer, _) = client.call("PUT", &uri, Some(body)).await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+
+    // A second workspace cannot claim the same repository.
+    let (other, _) = setup_as(pool, Some(github), "c@d.co").await;
+    let (_, dest2, _) = other
+        .call(
+            "POST",
+            "/v1/destinations",
+            Some(json!({"platform": "github"})),
+        )
+        .await;
+    let dest2 = dest2["destinationId"].as_str().unwrap().to_owned();
+    let (uri, body) = connect(&dest2, "acme", "site");
+    let (status, answer, _) = other.call("PUT", &uri, Some(body)).await;
+    assert_eq!(status, StatusCode::CONFLICT, "{answer}");
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn auto_publish_sends_each_draft_once(pool: PgPool) {
+    let hub = Shared::default();
+    let url = fake_github(hub).await;
+    let github = Arc::new(App::new(
+        "1".into(),
+        EncodingKey::from_secret(b"test"),
+        Algorithm::HS256,
+        &url,
+    ));
+    let (client, project) = setup(pool.clone(), Some(github)).await;
+    let (_, dest, _) = client
+        .call(
+            "POST",
+            "/v1/destinations",
+            Some(json!({"platform": "github"})),
+        )
+        .await;
+    let dest: Uuid = dest["destinationId"].as_str().unwrap().parse().unwrap();
+    let (status, answer, _) = client
+        .call(
+            "PUT",
+            &format!("/v1/destinations/{dest}/github"),
+            Some(json!({
+                "owner": "acme", "name": "site", "baseBranch": "main",
+                "contentRoot": "content/blog", "publicRoutePattern": "/blog/{slug}",
+            })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    let first = opportunity(&pool, project).await;
+    let second = opportunity(&pool, project).await;
+    let make = |opp: Uuid, slug: &str| json!({"opportunityId": opp, "article": article(slug, "## A\n\ntext")});
+    let (_, a, _) = client
+        .call("POST", "/v1/content", Some(make(first, "first-post")))
+        .await;
+    let id_a: Uuid = a["contentId"].as_str().unwrap().parse().unwrap();
+    let (_, b, _) = client
+        .call("POST", "/v1/content", Some(make(second, "second-post")))
+        .await;
+    let id_b: Uuid = b["contentId"].as_str().unwrap().parse().unwrap();
+    let (status, answer, _) = client
+        .call(
+            "PATCH",
+            &format!("/v1/destinations/{dest}"),
+            Some(json!({"autoPublish": true, "cadence": "daily"})),
+        )
+        .await;
+    assert_eq!(status, StatusCode::NO_CONTENT, "{answer}");
+
+    // A rejected first draft is not proposed again.
+    let now = chrono::Utc::now();
+    let rejected = delivery::schedule(&pool, id_a, dest, now, true)
+        .await
+        .unwrap();
+    delivery::cancel_latest(&pool, id_a, dest, false)
+        .await
+        .unwrap();
+
+    assert_eq!(delivery::auto_publish_tick(&pool, now).await.unwrap(), 1);
+    let scheduled: Uuid = sqlx::query_scalar(
+        "SELECT content_id FROM deliveries WHERE destination_id = $1 AND status = 'scheduled'",
+    )
+    .bind(dest)
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(scheduled, id_b);
+    assert_ne!(scheduled, id_a, "{rejected}");
+
+    // The same period does not send again.
+    assert_eq!(delivery::auto_publish_tick(&pool, now).await.unwrap(), 0);
 }

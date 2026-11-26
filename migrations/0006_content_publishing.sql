@@ -17,6 +17,10 @@ ALTER TABLE destinations
     ADD COLUMN last_auto_at timestamptz;
 -- Auto-publish is on for at most one destination of a project.
 CREATE UNIQUE INDEX destinations_auto_publish_idx ON destinations (project_id) WHERE auto_publish;
+-- One repository belongs to one destination: two workspaces must not write to the same one.
+CREATE UNIQUE INDEX destinations_repository_idx
+    ON destinations (lower(config ->> 'owner'), lower(config ->> 'name'))
+    WHERE config ? 'owner';
 
 ALTER TABLE deliveries
     ALTER COLUMN status SET DEFAULT 'scheduled',
@@ -27,7 +31,9 @@ ALTER TABLE deliveries
     ADD COLUMN attempted_at timestamptz,
     ADD COLUMN branch text,
     ADD COLUMN pr_number integer,
-    ADD COLUMN publication_id uuid;
+    ADD COLUMN publication_id uuid,
+    -- The repository this delivery was opened on, so a later destination change cannot re-point it.
+    ADD COLUMN config jsonb;
 UPDATE deliveries SET status = 'scheduled' WHERE status = 'queued';
 ALTER TABLE deliveries
     ADD CONSTRAINT deliveries_status_check

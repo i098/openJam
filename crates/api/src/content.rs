@@ -598,13 +598,42 @@ pub async fn restore_content(
     Path(content_id): Path<Uuid>,
 ) -> Result<StatusCode> {
     require_content(&state.pool, &principal, content_id).await?;
-    sqlx::query(
-        "UPDATE contents SET state = 'drafted', discarded_at = NULL
-         WHERE id = $1 AND state = 'discarded'",
-    )
-    .bind(content_id)
-    .execute(&state.pool)
-    .await?;
+    let mut tx = state.pool.begin().await?;
+    let row: Option<(String, Option<Uuid>)> =
+        sqlx::query_as("SELECT state, opportunity_id FROM contents WHERE id = $1 FOR UPDATE")
+            .bind(content_id)
+            .fetch_optional(&mut *tx)
+            .await?;
+    let Some((state, opportunity)) = row else {
+        return Err(ApiError(Error::NotFound("content")));
+    };
+    if state == "discarded" {
+        if let Some(opportunity) = opportunity {
+            // The same lock `create_content` takes, so one live item per opportunity holds.
+            sqlx::query("SELECT id FROM opportunities WHERE id = $1 FOR UPDATE")
+                .bind(opportunity)
+                .execute(&mut *tx)
+                .await?;
+            let drafted: bool = sqlx::query_scalar(
+                "SELECT EXISTS (SELECT 1 FROM contents
+                                WHERE opportunity_id = $1 AND state = 'drafted' AND id <> $2)",
+            )
+            .bind(opportunity)
+            .bind(content_id)
+            .fetch_one(&mut *tx)
+            .await?;
+            if drafted {
+                return Err(ApiError(Error::Conflict(
+                    "another draft exists for this opportunity; discard it first".into(),
+                )));
+            }
+        }
+        sqlx::query("UPDATE contents SET state = 'drafted', discarded_at = NULL WHERE id = $1")
+            .bind(content_id)
+            .execute(&mut *tx)
+            .await?;
+    }
+    tx.commit().await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
