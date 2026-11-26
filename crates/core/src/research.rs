@@ -13,7 +13,7 @@ use crate::{
         new_completion_token,
     },
     jobs,
-    tracking_parse::{BrandSpec, domain_of, same_site},
+    tracking_parse::{domain_of, same_site},
 };
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -35,31 +35,13 @@ const PROPOSALS_PER_AGENT: usize = 8;
 
 // ---- runs -----------------------------------------------------------------------------------
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RunKind {
-    FirstScan,
-    Backfill,
-    Manual,
-}
-
-impl RunKind {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::FirstScan => "first_scan",
-            Self::Backfill => "backfill",
-            Self::Manual => "manual",
-        }
-    }
-}
-
-/// Ask for a run and queue its job. A run already in flight is a `Conflict`.
-pub async fn request_run(pool: &PgPool, project_id: Uuid, kind: RunKind) -> Result<Uuid> {
+/// Ask for a manual run and queue its job. A run already in flight is a `Conflict`.
+pub async fn request_run(pool: &PgPool, project_id: Uuid) -> Result<Uuid> {
     let id: Option<Uuid> = sqlx::query_scalar(
-        "INSERT INTO research_runs (project_id, kind) VALUES ($1, $2)
+        "INSERT INTO research_runs (project_id, kind) VALUES ($1, 'manual')
          ON CONFLICT DO NOTHING RETURNING id",
     )
     .bind(project_id)
-    .bind(kind.as_str())
     .fetch_optional(pool)
     .await?;
     let id = id.ok_or_else(|| Error::Conflict("a research run is already in progress".into()))?;
@@ -180,9 +162,6 @@ pub async fn waiting_for_judge(pool: &PgPool, project_id: Uuid) -> Result<bool> 
 pub struct PromptEvidence {
     pub id: Uuid,
     pub text: String,
-    pub topic: Option<String>,
-    pub persona: Option<String>,
-    pub intent: Option<String>,
     pub answers: u32,
     pub mentioned: u32,
     pub cited: u32,
@@ -207,7 +186,6 @@ impl PromptEvidence {
 #[derive(Clone, Debug, Default)]
 pub struct Evidence {
     pub project_id: Uuid,
-    pub workspace_id: Uuid,
     pub brand: String,
     pub domain: String,
     pub site_url: String,
@@ -252,12 +230,11 @@ impl Evidence {
 }
 
 pub async fn gather(pool: &PgPool, project_id: Uuid) -> Result<Evidence> {
-    let project =
-        sqlx::query("SELECT workspace_id, name, domain, site_url FROM projects WHERE id = $1")
-            .bind(project_id)
-            .fetch_optional(pool)
-            .await?
-            .ok_or(Error::NotFound("project"))?;
+    let project = sqlx::query("SELECT name, domain, site_url FROM projects WHERE id = $1")
+        .bind(project_id)
+        .fetch_optional(pool)
+        .await?
+        .ok_or(Error::NotFound("project"))?;
     let domain: String = project.get("domain");
     let positioning: Option<String> = sqlx::query_scalar(
         "SELECT positioning FROM brand_profiles WHERE project_id = $1 ORDER BY version DESC LIMIT 1",
@@ -273,7 +250,7 @@ pub async fn gather(pool: &PgPool, project_id: Uuid) -> Result<Evidence> {
             .await?;
 
     let rows = sqlx::query(
-        "SELECT p.id, p.text, p.topic, p.persona, p.intent,
+        "SELECT p.id, p.text,
                 count(a.id) AS answers,
                 count(a.id) FILTER (WHERE a.brand_mentioned) AS mentioned,
                 count(a.id) FILTER (WHERE a.own_domain_cited) AS cited
@@ -293,9 +270,6 @@ pub async fn gather(pool: &PgPool, project_id: Uuid) -> Result<Evidence> {
         .map(|r| PromptEvidence {
             id: r.get("id"),
             text: r.get("text"),
-            topic: r.get("topic"),
-            persona: r.get("persona"),
-            intent: r.get("intent"),
             answers: n(r, "answers"),
             mentioned: n(r, "mentioned"),
             cited: n(r, "cited"),
@@ -346,7 +320,6 @@ pub async fn gather(pool: &PgPool, project_id: Uuid) -> Result<Evidence> {
     let answers_read = prompts.iter().map(|p| p.answers).sum();
     Ok(Evidence {
         project_id,
-        workspace_id: project.get("workspace_id"),
         brand: project.get("name"),
         domain,
         site_url: project.get("site_url"),
@@ -573,7 +546,6 @@ pub async fn store_results(
     let texts: HashMap<Uuid, &str> = ev.prompts.iter().map(|p| (p.id, p.text.as_str())).collect();
     let mut tx = pool.begin().await?;
     let mut action_ids = Vec::new();
-    let mut seen = Vec::new();
     let mut opportunities = 0;
     for (i, p) in ranked.iter().enumerate() {
         let fingerprint = p.fingerprint();
@@ -661,7 +633,6 @@ pub async fn store_results(
         } else if status == "superseded" {
             actions::insert_event(&mut tx, id, &NewEvent::new(Event::Reopened, "system")).await?;
         }
-        seen.push(id);
         action_ids.push(id);
     }
     let stale: Vec<Uuid> = sqlx::query_scalar(
@@ -670,7 +641,7 @@ pub async fn store_results(
                AND NOT (id = ANY($2)) FOR UPDATE",
     )
     .bind(ev.project_id)
-    .bind(&seen)
+    .bind(&action_ids)
     .fetch_all(&mut *tx)
     .await?;
     for id in &stale {
@@ -695,18 +666,9 @@ pub async fn store_results(
     tx.commit().await?;
     Ok(Stored {
         opportunities,
-        actions: seen.len(),
+        actions: action_ids.len(),
         superseded: stale.len(),
     })
-}
-
-/// The brand as the judge knows it, for the technical agent's page checks.
-pub fn brand_spec(ev: &Evidence) -> BrandSpec {
-    BrandSpec {
-        name: ev.brand.clone(),
-        domain: Some(ev.domain.clone()),
-        aliases: vec![],
-    }
 }
 
 #[cfg(test)]

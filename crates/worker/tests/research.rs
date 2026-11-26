@@ -302,9 +302,7 @@ async fn research_reads_scan_answers_proposes_work_and_checks_it(pool: PgPool) {
     );
 
     // A second run keeps the done actions and adds no copy of anything.
-    research::request_run(&pool, project, research::RunKind::Manual)
-        .await
-        .unwrap();
+    research::request_run(&pool, project).await.unwrap();
     drain(&svc).await;
     let total: i64 = sqlx::query_scalar("SELECT count(*) FROM actions")
         .fetch_one(&pool)

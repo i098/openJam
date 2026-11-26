@@ -5,7 +5,7 @@ use crate::error::{ApiError, ApiErrorBody, Error, Result};
 use crate::{auth::Principal, state::AppState};
 use axum::{Json, extract::State, http::StatusCode};
 use chrono::{DateTime, Utc};
-use openjam_core::research::{self, RunKind};
+use openjam_core::research;
 use serde::Serialize;
 use serde_json::Value;
 use sqlx::{PgPool, Row};
@@ -307,7 +307,7 @@ pub async fn create_research_request(
             "the first scan has not finished; research reads its answers".into(),
         )));
     }
-    let request_id = research::request_run(&state.pool, project.id, RunKind::Manual).await?;
+    let request_id = research::request_run(&state.pool, project.id).await?;
     Ok((
         StatusCode::ACCEPTED,
         Json(ResearchRequest {

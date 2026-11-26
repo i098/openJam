@@ -21,19 +21,6 @@ pub const KINDS: [&str; 5] = [
     "technical",
     "community",
 ];
-pub const PROBLEMS: [&str; 10] = [
-    "list_absent",
-    "list_low_rank",
-    "wrong_claim",
-    "page_read_rival_won",
-    "missing_page",
-    "technical_defect",
-    "engine_gap",
-    "community_absent",
-    "unclear_positioning",
-    "other",
-];
-
 // ---- status ---------------------------------------------------------------------------------
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -563,17 +550,15 @@ pub fn has_noindex(html: &str) -> bool {
 
 pub struct CheckContext {
     pub action_id: Uuid,
-    pub project_id: Uuid,
     pub brand: String,
     pub site_url: String,
     pub target_url: Option<String>,
     pub spec: CheckSpec,
-    pub status: Status,
 }
 
 pub async fn load_check(pool: &PgPool, action_id: Uuid) -> Result<Option<CheckContext>> {
     let Some(row) = sqlx::query(
-        "SELECT a.id, a.project_id, a.target_url, a.check_spec, a.status, p.name, p.site_url
+        "SELECT a.id, a.target_url, a.check_spec, p.name, p.site_url
          FROM actions a JOIN projects p ON p.id = a.project_id WHERE a.id = $1",
     )
     .bind(action_id)
@@ -590,15 +575,10 @@ pub async fn load_check(pool: &PgPool, action_id: Uuid) -> Result<Option<CheckCo
     };
     Ok(Some(CheckContext {
         action_id: row.get("id"),
-        project_id: row.get("project_id"),
         brand: row.get("name"),
         site_url: row.get("site_url"),
         target_url: row.get("target_url"),
         spec,
-        status: row
-            .get::<String, _>("status")
-            .parse()
-            .map_err(Error::Internal)?,
     }))
 }
 
