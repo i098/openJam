@@ -25,7 +25,7 @@ const RIVALS = [
 ]
 const BRANDS = [OWNED, ...RIVALS]
 const PLATFORMS = [
-  { id: 'chatgpt', displayName: 'ChatGPT', status: 'active' },
+  { id: 'openai', displayName: 'ChatGPT', status: 'active' },
   { id: 'claude', displayName: 'Claude', status: 'active' },
   { id: 'perplexity', displayName: 'Perplexity', status: 'active' },
   { id: 'gemini', displayName: 'Gemini', status: 'off' },

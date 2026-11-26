@@ -13,7 +13,7 @@ export const promptRoute = createRoute({
   component: PromptDetail,
 })
 
-const PLATFORMS = ['chatgpt', 'claude', 'perplexity', 'gemini']
+const PLATFORMS = ['openai', 'claude', 'perplexity', 'gemini']
 const PAGE = 10
 
 function PromptDetail() {

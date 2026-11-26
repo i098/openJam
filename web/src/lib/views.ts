@@ -158,7 +158,7 @@ export type VisibilityRun = {
 }
 
 const PLATFORM_NAMES: Record<string, string> = {
-  chatgpt: 'ChatGPT',
+  openai: 'ChatGPT',
   claude: 'Claude',
   perplexity: 'Perplexity',
   gemini: 'Gemini',

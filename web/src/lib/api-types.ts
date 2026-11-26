@@ -349,14 +349,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/brand (not built yet) */
+        /** Get the brand profile */
         get: operations["get_brand"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Patch /v1/brand (not built yet) */
+        /** Update the brand profile */
         patch: operations["update_brand"];
         trace?: never;
     };
@@ -367,11 +367,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/brand/competitors (not built yet) */
+        /** List the pinned competitors */
         get: operations["list_brand_competitors"];
         /** Put /v1/brand/competitors (not built yet) */
         put: operations["pin_competitors"];
-        /** Post /v1/brand/competitors (not built yet) */
+        /** Add competitors */
         post: operations["add_brand_competitors"];
         /** Delete /v1/brand/competitors (not built yet) */
         delete: operations["unpin_competitors"];
@@ -1071,11 +1071,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/prompts (not built yet) */
+        /** List prompts */
         get: operations["list_prompts"];
         /** Put /v1/prompts (not built yet) */
         put: operations["edit_prompts_bulk"];
-        /** Post /v1/prompts (not built yet) */
+        /** Add a prompt */
         post: operations["add_prompt"];
         delete?: never;
         options?: never;
@@ -1092,7 +1092,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/prompts/bulk (not built yet) */
+        /** Add several prompts */
         post: operations["add_prompts_bulk"];
         delete?: never;
         options?: never;
@@ -1107,7 +1107,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/prompts/cap (not built yet) */
+        /** The prompt cap of this install */
         get: operations["get_prompt_cap"];
         put?: never;
         post?: never;
@@ -1177,15 +1177,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/prompts/{promptId} (not built yet) */
+        /** Get one prompt */
         get: operations["get_prompt"];
         put?: never;
         post?: never;
-        /** Delete /v1/prompts/{promptId} (not built yet) */
+        /** Remove a prompt */
         delete: operations["remove_prompt"];
         options?: never;
         head?: never;
-        /** Patch /v1/prompts/{promptId} (not built yet) */
+        /** Edit a prompt */
         patch: operations["edit_prompt"];
         trace?: never;
     };
@@ -1215,7 +1215,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/prompts/{promptId}/pause (not built yet) */
+        /** Pause or resume a prompt */
         post: operations["pause_prompt"];
         delete?: never;
         options?: never;
@@ -1376,10 +1376,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/visibility-runs (not built yet) */
+        /** List scans */
         get: operations["list_visibility_runs"];
         put?: never;
-        /** Post /v1/visibility-runs (not built yet) */
+        /** Start a scan */
         post: operations["create_visibility_run"];
         delete?: never;
         options?: never;
@@ -1394,7 +1394,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/visibility-runs/{runId} (not built yet) */
+        /** Get one scan */
         get: operations["get_visibility_run"];
         put?: never;
         post?: never;
@@ -1552,9 +1552,19 @@ export interface components {
             };
             pageInfo: components["schemas"]["PageInfo"];
         };
+        AddCompetitors: {
+            competitors: string[];
+        };
         AddDestination: {
             /** @description Only `github`. */
             platform: string;
+        };
+        AddPrompt: {
+            branded?: boolean;
+            intent?: string | null;
+            persona?: string | null;
+            text: string;
+            topic?: string | null;
         };
         AddRevision: {
             article: components["schemas"]["Article"];
@@ -1572,6 +1582,15 @@ export interface components {
         AddedDestination: {
             /** Format: uuid */
             destinationId: string;
+        };
+        AddedPrompt: {
+            /** Format: int64 */
+            activeCount: number;
+            /** Format: int32 */
+            cap: number;
+            existing: boolean;
+            /** Format: uuid */
+            promptId: string;
         };
         AddedRevision: {
             /** Format: uuid */
@@ -1749,6 +1768,31 @@ export interface components {
             /** Format: date-time */
             notBefore?: string | null;
         };
+        BrandCompetitor: {
+            aliases: string[];
+            domain?: string | null;
+            name: string;
+        };
+        BrandCompetitorRow: {
+            aliases: string[];
+            domain?: string | null;
+            name: string;
+            /** Format: date-time */
+            pinnedAt?: string | null;
+        };
+        BrandProfile: {
+            audience?: string | null;
+            competitorRoster: components["schemas"]["BrandCompetitor"][];
+            /** @description The competitor names, in the order they were added. */
+            competitors: string[];
+            positioning?: string | null;
+            productDescription?: string | null;
+            /**
+             * Format: int32
+             * @description 0 when the brand profile has no saved version yet.
+             */
+            version: number;
+        };
         BrandVoice: {
             audience?: string | null;
             contentStyle?: string | null;
@@ -1762,6 +1806,15 @@ export interface components {
             evidenceBundleId: string;
             /** @description The pages research read and what it recorded from each. */
             sources: unknown;
+        };
+        BulkPrompts: {
+            prompts: components["schemas"]["AddPrompt"][];
+        };
+        BulkPromptsResult: {
+            /** Format: int64 */
+            added: number;
+            /** Format: int64 */
+            existing: number;
         };
         ChangeFeedItem: {
             /** Format: double */
@@ -1786,6 +1839,9 @@ export interface components {
             /** Format: date-time */
             expiresAt?: string | null;
             kind: string;
+        };
+        CompetitorList: {
+            competitors: components["schemas"]["BrandCompetitorRow"][];
         };
         ConfigureGithubDestination: {
             baseBranch: string;
@@ -2294,6 +2350,9 @@ export interface components {
             /** Format: int64 */
             totalCount: number;
         };
+        PausePrompt: {
+            paused: boolean;
+        };
         PlatformBreakdownRow: {
             /** Format: int64 */
             answerCount: number;
@@ -2318,6 +2377,22 @@ export interface components {
             /** @description `setup`, `active`, `paused` or `blocked`. */
             status: string;
         };
+        Prompt: {
+            branded: boolean;
+            /** Format: uuid */
+            id: string;
+            intent?: string | null;
+            /** @description `tracked` or `archived`. */
+            list: string;
+            persona?: string | null;
+            scored: boolean;
+            /** @description `active` or `paused`. */
+            status: string;
+            text: string;
+            topic?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         PromptAnalytics: {
             filters: components["schemas"]["PromptFilters"];
             metricDefinitions: components["schemas"]["MetricDefinitions"];
@@ -2327,11 +2402,30 @@ export interface components {
             providers: components["schemas"]["AnalyticsPlatform"][];
             window: components["schemas"]["AnalyticsWindow"];
         };
+        PromptCap: {
+            /** Format: int64 */
+            activeCount: number;
+            /**
+             * Format: int32
+             * @description `-1` when this install has no prompt cap.
+             */
+            cap: number;
+        };
+        PromptCounts: {
+            /** Format: int64 */
+            paused: number;
+            /** Format: int64 */
+            tracked: number;
+        };
         PromptFilters: {
             intent?: string | null;
             platform?: string | null;
             query?: string | null;
             topic?: string | null;
+        };
+        PromptList: {
+            counts: components["schemas"]["PromptCounts"];
+            prompts: components["schemas"]["Prompt"][];
         };
         PromptMetrics: {
             averagePosition: components["schemas"]["MetricValue"];
@@ -2473,6 +2567,13 @@ export interface components {
             /** @description Shown on the approval page, for example `Claude Code`. */
             name?: string | null;
         };
+        StartRun: {
+            /**
+             * Format: uuid
+             * @description The project; the newest one when omitted.
+             */
+            projectId?: string | null;
+        };
         Submit: {
             body: unknown;
             method: string;
@@ -2499,6 +2600,11 @@ export interface components {
             points: components["schemas"]["TrendPoint"][];
             unit: string;
         };
+        UpdateBrand: {
+            audience?: string | null;
+            positioning?: string | null;
+            productDescription?: string | null;
+        };
         UpdateFailure: {
             /** Format: date-time */
             at: string;
@@ -2513,6 +2619,13 @@ export interface components {
             channels?: string[] | null;
             isActive?: boolean | null;
             quietHours?: null | components["schemas"]["QuietHours"];
+        };
+        UpdatePrompt: {
+            branded?: boolean | null;
+            intent?: string | null;
+            persona?: string | null;
+            text?: string | null;
+            topic?: string | null;
         };
         UpdateWebhook: {
             enabled?: boolean | null;
@@ -2534,6 +2647,42 @@ export interface components {
              * @description Scans started in the current UTC day.
              */
             scans_today: number;
+        };
+        VisibilityRun: {
+            /**
+             * Format: int64
+             * @description A rough estimate from the number of calls, 15 seconds each.
+             */
+            expectedMinutes: number;
+            /** Format: int32 */
+            platformCount: number;
+            /** Format: uuid */
+            projectId: string;
+            /** Format: int32 */
+            promptCount: number;
+            /** Format: uuid */
+            runId: string;
+        };
+        VisibilityRunList: {
+            runs: components["schemas"]["VisibilityRunSummary"][];
+        };
+        VisibilityRunSummary: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            /** Format: int32 */
+            platformCount: number;
+            /** Format: uuid */
+            projectId: string;
+            /** Format: int32 */
+            promptCount: number;
+            /** Format: uuid */
+            runId: string;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** @description `queued`, `running`, `complete`, `partial`, `failed` or `cap_reached`. */
+            status: string;
         };
         Voice: {
             brand: components["schemas"]["BrandVoice"];
@@ -3460,14 +3609,25 @@ export interface operations {
     };
     get_brand: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The project; newest when omitted */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandProfile"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3479,14 +3639,37 @@ export interface operations {
     };
     update_brand: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The project; newest when omitted */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBrand"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandProfile"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3498,14 +3681,25 @@ export interface operations {
     };
     list_brand_competitors: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The project; newest when omitted */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompetitorList"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3536,14 +3730,37 @@ export interface operations {
     };
     add_brand_competitors: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The project; newest when omitted */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCompetitors"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompetitorList"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5480,14 +5697,28 @@ export interface operations {
     };
     list_prompts: {
         parameters: {
-            query?: never;
+            query?: {
+                projectId?: string;
+                /** @description `tracked` (default) or `archived`. */
+                list?: string;
+                topic?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptList"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5518,14 +5749,37 @@ export interface operations {
     };
     add_prompt: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The project; newest when omitted */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddPrompt"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddedPrompt"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5537,14 +5791,37 @@ export interface operations {
     };
     add_prompts_bulk: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The project; newest when omitted */
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkPrompts"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkPromptsResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5556,14 +5833,24 @@ export interface operations {
     };
     get_prompt_cap: {
         parameters: {
-            query?: never;
+            query?: {
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptCap"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5676,14 +5963,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The prompt */
                 promptId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prompt"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5698,14 +6001,28 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The prompt */
                 promptId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5720,14 +6037,42 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The prompt */
                 promptId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePrompt"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prompt"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5797,14 +6142,34 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The prompt */
                 promptId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PausePrompt"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prompt"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6070,7 +6435,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityRunList"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6087,9 +6460,37 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartRun"];
+            };
+        };
         responses: {
-            501: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityRun"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6104,14 +6505,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The scan run */
                 runId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityRunSummary"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

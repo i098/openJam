@@ -913,10 +913,24 @@ paths:
     get:
       tags:
       - Brand
-      summary: Get /v1/brand (not built yet)
+      summary: Get the brand profile
       operationId: get_brand
+      parameters:
+      - name: projectId
+        in: query
+        description: The project; newest when omitted
+        required: false
+        schema:
+          type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandProfile'
+        '401':
           description: ''
           content:
             application/json:
@@ -927,10 +941,36 @@ paths:
     patch:
       tags:
       - Brand
-      summary: Patch /v1/brand (not built yet)
+      summary: Update the brand profile
       operationId: update_brand
+      parameters:
+      - name: projectId
+        in: query
+        description: The project; newest when omitted
+        required: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBrand'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandProfile'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
           description: ''
           content:
             application/json:
@@ -942,10 +982,24 @@ paths:
     get:
       tags:
       - Brand
-      summary: Get /v1/brand/competitors (not built yet)
+      summary: List the pinned competitors
       operationId: list_brand_competitors
+      parameters:
+      - name: projectId
+        in: query
+        description: The project; newest when omitted
+        required: false
+        schema:
+          type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitorList'
+        '401':
           description: ''
           content:
             application/json:
@@ -970,10 +1024,36 @@ paths:
     post:
       tags:
       - Brand
-      summary: Post /v1/brand/competitors (not built yet)
+      summary: Add competitors
       operationId: add_brand_competitors
+      parameters:
+      - name: projectId
+        in: query
+        description: The project; newest when omitted
+        required: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCompetitors'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitorList'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
           description: ''
           content:
             application/json:
@@ -2724,10 +2804,40 @@ paths:
     get:
       tags:
       - Prompts
-      summary: Get /v1/prompts (not built yet)
+      summary: List prompts
       operationId: list_prompts
+      parameters:
+      - name: projectId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: list
+        in: query
+        description: '`tracked` (default) or `archived`.'
+        required: false
+        schema:
+          type: string
+      - name: topic
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptList'
+        '401':
           description: ''
           content:
             application/json:
@@ -2752,10 +2862,36 @@ paths:
     post:
       tags:
       - Prompts
-      summary: Post /v1/prompts (not built yet)
+      summary: Add a prompt
       operationId: add_prompt
+      parameters:
+      - name: projectId
+        in: query
+        description: The project; newest when omitted
+        required: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPrompt'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddedPrompt'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
           description: ''
           content:
             application/json:
@@ -2767,10 +2903,36 @@ paths:
     post:
       tags:
       - Prompts
-      summary: Post /v1/prompts/bulk (not built yet)
+      summary: Add several prompts
       operationId: add_prompts_bulk
+      parameters:
+      - name: projectId
+        in: query
+        description: The project; newest when omitted
+        required: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkPrompts'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkPromptsResult'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
           description: ''
           content:
             application/json:
@@ -2782,10 +2944,23 @@ paths:
     get:
       tags:
       - Prompts
-      summary: Get /v1/prompts/cap (not built yet)
+      summary: The prompt cap of this install
       operationId: get_prompt_cap
+      parameters:
+      - name: projectId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptCap'
+        '401':
           description: ''
           content:
             application/json:
@@ -2877,17 +3052,30 @@ paths:
     get:
       tags:
       - Prompts
-      summary: Get /v1/prompts/{promptId} (not built yet)
+      summary: Get one prompt
       operationId: get_prompt
       parameters:
       - name: promptId
         in: path
-        description: Path parameter
+        description: The prompt
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prompt'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2898,17 +3086,26 @@ paths:
     delete:
       tags:
       - Prompts
-      summary: Delete /v1/prompts/{promptId} (not built yet)
+      summary: Remove a prompt
       operationId: remove_prompt
       parameters:
       - name: promptId
         in: path
-        description: Path parameter
+        description: The prompt
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: ''
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2919,17 +3116,42 @@ paths:
     patch:
       tags:
       - Prompts
-      summary: Patch /v1/prompts/{promptId} (not built yet)
+      summary: Edit a prompt
       operationId: edit_prompt
       parameters:
       - name: promptId
         in: path
-        description: Path parameter
+        description: The prompt
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePrompt'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prompt'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -3025,17 +3247,36 @@ paths:
     post:
       tags:
       - Prompts
-      summary: Post /v1/prompts/{promptId}/pause (not built yet)
+      summary: Pause or resume a prompt
       operationId: pause_prompt
       parameters:
       - name: promptId
         in: path
-        description: Path parameter
+        description: The prompt
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PausePrompt'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prompt'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -3260,10 +3501,16 @@ paths:
     get:
       tags:
       - Visibility runs
-      summary: Get /v1/visibility-runs (not built yet)
+      summary: List scans
       operationId: list_visibility_runs
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisibilityRunList'
+        '401':
           description: ''
           content:
             application/json:
@@ -3274,10 +3521,34 @@ paths:
     post:
       tags:
       - Visibility runs
-      summary: Post /v1/visibility-runs (not built yet)
+      summary: Start a scan
       operationId: create_visibility_run
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartRun'
+        required: true
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisibilityRun'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '429':
           description: ''
           content:
             application/json:
@@ -3289,17 +3560,30 @@ paths:
     get:
       tags:
       - Visibility runs
-      summary: Get /v1/visibility-runs/{runId} (not built yet)
+      summary: Get one scan
       operationId: get_visibility_run
       parameters:
       - name: runId
         in: path
-        description: Path parameter
+        description: The scan run
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisibilityRunSummary'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -3659,6 +3943,15 @@ components:
             type: string
         pageInfo:
           $ref: '#/components/schemas/PageInfo'
+    AddCompetitors:
+      type: object
+      required:
+      - competitors
+      properties:
+        competitors:
+          type: array
+          items:
+            type: string
     AddDestination:
       type: object
       required:
@@ -3667,6 +3960,27 @@ components:
         platform:
           type: string
           description: Only `github`.
+    AddPrompt:
+      type: object
+      required:
+      - text
+      properties:
+        branded:
+          type: boolean
+        intent:
+          type:
+          - string
+          - 'null'
+        persona:
+          type:
+          - string
+          - 'null'
+        text:
+          type: string
+        topic:
+          type:
+          - string
+          - 'null'
     AddRevision:
       type: object
       required:
@@ -3692,6 +4006,25 @@ components:
       - destinationId
       properties:
         destinationId:
+          type: string
+          format: uuid
+    AddedPrompt:
+      type: object
+      required:
+      - promptId
+      - existing
+      - activeCount
+      - cap
+      properties:
+        activeCount:
+          type: integer
+          format: int64
+        cap:
+          type: integer
+          format: int32
+        existing:
+          type: boolean
+        promptId:
           type: string
           format: uuid
     AddedRevision:
@@ -4147,6 +4480,75 @@ components:
           - string
           - 'null'
           format: date-time
+    BrandCompetitor:
+      type: object
+      required:
+      - name
+      - aliases
+      properties:
+        aliases:
+          type: array
+          items:
+            type: string
+        domain:
+          type:
+          - string
+          - 'null'
+        name:
+          type: string
+    BrandCompetitorRow:
+      type: object
+      required:
+      - name
+      - aliases
+      properties:
+        aliases:
+          type: array
+          items:
+            type: string
+        domain:
+          type:
+          - string
+          - 'null'
+        name:
+          type: string
+        pinnedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    BrandProfile:
+      type: object
+      required:
+      - version
+      - competitors
+      - competitorRoster
+      properties:
+        audience:
+          type:
+          - string
+          - 'null'
+        competitorRoster:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandCompetitor'
+        competitors:
+          type: array
+          items:
+            type: string
+          description: The competitor names, in the order they were added.
+        positioning:
+          type:
+          - string
+          - 'null'
+        productDescription:
+          type:
+          - string
+          - 'null'
+        version:
+          type: integer
+          format: int32
+          description: 0 when the brand profile has no saved version yet.
     BrandVoice:
       type: object
       required:
@@ -4189,6 +4591,27 @@ components:
           type: string
         sources:
           description: The pages research read and what it recorded from each.
+    BulkPrompts:
+      type: object
+      required:
+      - prompts
+      properties:
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddPrompt'
+    BulkPromptsResult:
+      type: object
+      required:
+      - added
+      - existing
+      properties:
+        added:
+          type: integer
+          format: int64
+        existing:
+          type: integer
+          format: int64
     ChangeFeedItem:
       type: object
       required:
@@ -4239,6 +4662,15 @@ components:
           format: date-time
         kind:
           type: string
+    CompetitorList:
+      type: object
+      required:
+      - competitors
+      properties:
+        competitors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandCompetitorRow'
     ConfigureGithubDestination:
       type: object
       required:
@@ -5378,6 +5810,13 @@ components:
           type: integer
           format: int64
           minimum: 0
+    PausePrompt:
+      type: object
+      required:
+      - paused
+      properties:
+        paused:
+          type: boolean
     PlatformBreakdownRow:
       type: object
       required:
@@ -5439,6 +5878,47 @@ components:
         status:
           type: string
           description: '`setup`, `active`, `paused` or `blocked`.'
+    Prompt:
+      type: object
+      required:
+      - id
+      - text
+      - list
+      - status
+      - branded
+      - scored
+      - updatedAt
+      properties:
+        branded:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        intent:
+          type:
+          - string
+          - 'null'
+        list:
+          type: string
+          description: '`tracked` or `archived`.'
+        persona:
+          type:
+          - string
+          - 'null'
+        scored:
+          type: boolean
+        status:
+          type: string
+          description: '`active` or `paused`.'
+        text:
+          type: string
+        topic:
+          type:
+          - string
+          - 'null'
+        updatedAt:
+          type: string
+          format: date-time
     PromptAnalytics:
       type: object
       required:
@@ -5468,6 +5948,31 @@ components:
             $ref: '#/components/schemas/AnalyticsPlatform'
         window:
           $ref: '#/components/schemas/AnalyticsWindow'
+    PromptCap:
+      type: object
+      required:
+      - cap
+      - activeCount
+      properties:
+        activeCount:
+          type: integer
+          format: int64
+        cap:
+          type: integer
+          format: int32
+          description: '`-1` when this install has no prompt cap.'
+    PromptCounts:
+      type: object
+      required:
+      - tracked
+      - paused
+      properties:
+        paused:
+          type: integer
+          format: int64
+        tracked:
+          type: integer
+          format: int64
     PromptFilters:
       type: object
       properties:
@@ -5487,6 +5992,18 @@ components:
           type:
           - string
           - 'null'
+    PromptList:
+      type: object
+      required:
+      - prompts
+      - counts
+      properties:
+        counts:
+          $ref: '#/components/schemas/PromptCounts'
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prompt'
     PromptMetrics:
       type: object
       required:
@@ -5815,6 +6332,15 @@ components:
           - string
           - 'null'
           description: Shown on the approval page, for example `Claude Code`.
+    StartRun:
+      type: object
+      properties:
+        projectId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The project; the newest one when omitted.
     Submit:
       type: object
       required:
@@ -5881,6 +6407,21 @@ components:
             $ref: '#/components/schemas/TrendPoint'
         unit:
           type: string
+    UpdateBrand:
+      type: object
+      properties:
+        audience:
+          type:
+          - string
+          - 'null'
+        positioning:
+          type:
+          - string
+          - 'null'
+        productDescription:
+          type:
+          - string
+          - 'null'
     UpdateFailure:
       type: object
       required:
@@ -5923,6 +6464,29 @@ components:
           - type: 'null'
           - $ref: '#/components/schemas/QuietHours'
             description: An object sets quiet hours. `null` clears them. Leave it out to keep them.
+    UpdatePrompt:
+      type: object
+      properties:
+        branded:
+          type:
+          - boolean
+          - 'null'
+        intent:
+          type:
+          - string
+          - 'null'
+        persona:
+          type:
+          - string
+          - 'null'
+        text:
+          type:
+          - string
+          - 'null'
+        topic:
+          type:
+          - string
+          - 'null'
     UpdateWebhook:
       type: object
       properties:
@@ -5962,6 +6526,78 @@ components:
           type: integer
           format: int64
           description: Scans started in the current UTC day.
+    VisibilityRun:
+      type: object
+      required:
+      - runId
+      - projectId
+      - promptCount
+      - platformCount
+      - expectedMinutes
+      properties:
+        expectedMinutes:
+          type: integer
+          format: int64
+          description: A rough estimate from the number of calls, 15 seconds each.
+        platformCount:
+          type: integer
+          format: int32
+        projectId:
+          type: string
+          format: uuid
+        promptCount:
+          type: integer
+          format: int32
+        runId:
+          type: string
+          format: uuid
+    VisibilityRunList:
+      type: object
+      required:
+      - runs
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/VisibilityRunSummary'
+    VisibilityRunSummary:
+      type: object
+      required:
+      - runId
+      - projectId
+      - status
+      - promptCount
+      - platformCount
+      - createdAt
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        platformCount:
+          type: integer
+          format: int32
+        projectId:
+          type: string
+          format: uuid
+        promptCount:
+          type: integer
+          format: int32
+        runId:
+          type: string
+          format: uuid
+        startedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        status:
+          type: string
+          description: '`queued`, `running`, `complete`, `partial`, `failed` or `cap_reached`.'
     Voice:
       type: object
       required:
