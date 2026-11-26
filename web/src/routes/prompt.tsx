@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, Loading, Pill, Problem } from '@/components/ui/kit'
 import { api } from '@/lib/api'
-import type { Answer, AnswerPage, Prompt } from '@/lib/views'
+import { type Answer, type AnswerPage, type Prompt, platformName } from '@/lib/views'
 import { shellRoute } from '@/routes/shell'
 
 export const promptRoute = createRoute({
@@ -76,7 +76,9 @@ function PromptDetail() {
           >
             <option value="">All platforms</option>
             {PLATFORMS.map((p) => (
-              <option key={p}>{p}</option>
+              <option key={p} value={p}>
+                {platformName(p)}
+              </option>
             ))}
           </select>
           <label className="inline-flex items-center gap-2">
@@ -120,7 +122,7 @@ function AnswerCard({ answer }: { answer: Answer }) {
   return (
     <li className="rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-sm font-semibold capitalize">{answer.platform}</h3>
+        <h3 className="text-sm font-semibold">{platformName(answer.platform)}</h3>
         <time dateTime={answer.observedAt} className="text-sm">
           {new Date(answer.observedAt).toLocaleString(undefined, {
             dateStyle: 'medium',

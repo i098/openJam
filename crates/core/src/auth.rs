@@ -7,6 +7,9 @@ use rand::{Rng, distr::Alphanumeric};
 use sha2::{Digest, Sha256};
 
 pub const API_KEY_PREFIX: &str = "sk_";
+/// OAuth access tokens start with this. `Authorization: Bearer oat_...` works on `/v1`.
+pub const OAUTH_ACCESS_PREFIX: &str = "oat_";
+pub const OAUTH_REFRESH_PREFIX: &str = "ort_";
 /// Characters of a key kept in clear to recognize it in lists: `sk_` plus 8.
 const KEY_PREFIX_LEN: usize = 11;
 
@@ -36,6 +39,11 @@ fn random_token(len: usize) -> String {
         .take(len)
         .map(char::from)
         .collect()
+}
+
+/// A random secret with a fixed prefix, for OAuth codes and tokens. Store only its hash.
+pub fn new_prefixed_token(prefix: &str, len: usize) -> String {
+    format!("{prefix}{}", random_token(len))
 }
 
 pub fn new_session_token() -> String {

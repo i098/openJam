@@ -222,10 +222,23 @@ paths:
     post:
       tags:
       - Agent connect
-      summary: Post /v1/agent-connect (not built yet)
+      summary: Start an agent connect session
       operationId: start_agent_connect
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: 'null'
+              - $ref: '#/components/schemas/StartConnect'
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectStarted'
+        '429':
           description: ''
           content:
             application/json:
@@ -235,17 +248,23 @@ paths:
     get:
       tags:
       - Agent connect
-      summary: Get /v1/agent-connect/{pollToken} (not built yet)
+      summary: Poll an agent connect session
       operationId: get_agent_connect
       parameters:
       - name: pollToken
         in: path
-        description: Path parameter
+        description: The `pollToken` from the start call
         required: true
         schema:
           type: string
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectStatus'
+        '404':
           description: ''
           content:
             application/json:
@@ -1726,6 +1745,37 @@ paths:
                 $ref: '#/components/schemas/ApiErrorBody'
       security:
       - bearerAuth: []
+  /v1/events/stream:
+    get:
+      tags:
+      - Events
+      summary: Stream workspace events
+      operationId: stream_events
+      parameters:
+      - name: after
+        in: query
+        description: |-
+          Send events with an id above this one. The `Last-Event-ID` header does the same.
+          With neither, the stream starts at the next new event.
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Server-sent events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
   /v1/keywords:
     get:
       tags:
@@ -1799,10 +1849,16 @@ paths:
     get:
       tags:
       - Notifications
-      summary: Get /v1/notification-rules (not built yet)
+      summary: Notification rules
       operationId: list_notification_rules
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationRuleList'
+        '401':
           description: ''
           content:
             application/json:
@@ -1814,17 +1870,100 @@ paths:
     patch:
       tags:
       - Notifications
-      summary: Patch /v1/notification-rules/{category} (not built yet)
+      summary: Change a notification rule
       operationId: update_notification_rule
       parameters:
       - name: category
         in: path
-        description: Path parameter
+        description: '`action_required`, `error`, `status_update`, `insight` or `completion`'
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationRule'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationRule'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/notifications:
+    get:
+      tags:
+      - Notifications
+      summary: The notification inbox
+      operationId: list_notifications
+      parameters:
+      - name: unread
+        in: query
+        description: '`true`: only unread ones.'
+        required: false
+        schema:
+          type: boolean
+      - name: limit
+        in: query
+        description: 1 to 100. The default is 30.
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationList'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/notifications/read:
+    post:
+      tags:
+      - Notifications
+      summary: Mark notifications read
+      operationId: mark_notifications_read
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: 'null'
+              - $ref: '#/components/schemas/MarkRead'
+      responses:
+        '204':
+          description: Marked
+        '401':
           description: ''
           content:
             application/json:
@@ -2677,10 +2816,16 @@ paths:
     get:
       tags:
       - Webhooks
-      summary: Get /v1/webhooks (not built yet)
+      summary: List webhooks
       operationId: list_webhooks
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookList'
+        '401':
           description: ''
           content:
             application/json:
@@ -2691,10 +2836,28 @@ paths:
     post:
       tags:
       - Webhooks
-      summary: Post /v1/webhooks (not built yet)
+      summary: Add a webhook
       operationId: create_webhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhook'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedWebhook'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
           description: ''
           content:
             application/json:
@@ -2706,17 +2869,26 @@ paths:
     delete:
       tags:
       - Webhooks
-      summary: Delete /v1/webhooks/{webhookId} (not built yet)
+      summary: Remove a webhook
       operationId: delete_webhook
       parameters:
       - name: webhookId
         in: path
-        description: Path parameter
+        description: The webhook to remove
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: Removed
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2727,17 +2899,42 @@ paths:
     patch:
       tags:
       - Webhooks
-      summary: Patch /v1/webhooks/{webhookId} (not built yet)
+      summary: Rename, enable or disable a webhook
       operationId: update_webhook
       parameters:
       - name: webhookId
         in: path
-        description: Path parameter
+        description: The webhook to change
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhook'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -3276,6 +3473,50 @@ components:
         publicRoutePattern:
           type: string
           description: The address an article is published at, with `{slug}` where its slug goes.
+    ConnectStarted:
+      type: object
+      required:
+      - connectUrl
+      - userCode
+      - pollToken
+      - expiresAt
+      - intervalSeconds
+      properties:
+        connectUrl:
+          type: string
+          description: Open this address in a browser to approve.
+        expiresAt:
+          type: string
+          format: date-time
+        intervalSeconds:
+          type: integer
+          format: int32
+          description: Wait this long between polls.
+          minimum: 0
+        pollToken:
+          type: string
+          description: Secret for polling. Keep it in the agent.
+        userCode:
+          type: string
+          description: The code the approval page shows, `XXXX-XXXX`.
+    ConnectStatus:
+      type: object
+      required:
+      - status
+      properties:
+        apiKey:
+          type:
+          - string
+          - 'null'
+          description: The API key. In the first `approved` reply only.
+        status:
+          type: string
+          description: '`pending`, `approved`, `claimed` (the key was handed out already) or `expired`.'
+        workspaceId:
+          type:
+          - string
+          - 'null'
+          format: uuid
     Connection:
       type: object
       required:
@@ -3438,6 +3679,17 @@ components:
           type:
           - string
           - 'null'
+    CreateWebhook:
+      type: object
+      required:
+      - name
+      - url
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          description: An `http` or `https` address that accepts `POST`.
     CreatedContent:
       type: object
       required:
@@ -3450,6 +3702,16 @@ components:
         revisionId:
           type: string
           format: uuid
+    CreatedWebhook:
+      allOf:
+      - $ref: '#/components/schemas/Webhook'
+      - type: object
+        required:
+        - signingSecret
+        properties:
+          signingSecret:
+            type: string
+            description: Verifies the `X-OpenJam-Signature` header. Shown once; store it now.
     Deliveries:
       type: object
       required:
@@ -3717,6 +3979,17 @@ components:
         url:
           type: string
           description: The public page the content is live at; http or https.
+    MarkRead:
+      type: object
+      properties:
+        ids:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          description: These notifications. Leave it out to mark every unread one.
     Me:
       type: object
       required:
@@ -3927,6 +4200,85 @@ components:
           - 'null'
           format: double
           description: '`null` when the window has no answers to measure.'
+    Notification:
+      type: object
+      required:
+      - id
+      - kind
+      - body
+      - createdAt
+      properties:
+        body: {}
+        category:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          description: The event type, for example `scan.complete`. `batch.<category>` for a merged one.
+        readAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    NotificationList:
+      type: object
+      required:
+      - notifications
+      - unreadCount
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        unreadCount:
+          type: integer
+          format: int64
+          description: Unread in this workspace, not only on this page.
+    NotificationRule:
+      type: object
+      required:
+      - category
+      - channels
+      - isActive
+      - batchingEnabled
+      - batchWindowMinutes
+      properties:
+        batchWindowMinutes:
+          type: integer
+          format: int32
+        batchingEnabled:
+          type: boolean
+          description: Merge inbox notifications of this category that arrive within the window.
+        category:
+          type: string
+          description: '`action_required`, `error`, `status_update`, `insight` or `completion`.'
+        channels:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        quietHours:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/QuietHours'
+            description: Webhook deliveries wait until the window ends.
+    NotificationRuleList:
+      type: object
+      required:
+      - rules
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationRule'
     PageInfo:
       type: object
       required:
@@ -4156,6 +4508,22 @@ components:
           - string
           - 'null'
           description: Send `"now"` to publish now. Send this or `publishAt`, not both.
+    QuietHours:
+      type: object
+      required:
+      - start
+      - end
+      - timezone
+      properties:
+        end:
+          type: string
+          description: Local time, `HH:MM`. Earlier than `start` means the window crosses midnight.
+        start:
+          type: string
+          description: Local time, `HH:MM`.
+        timezone:
+          type: string
+          description: An IANA zone, for example `Europe/Berlin`.
     RegenerateContent:
       type: object
       required:
@@ -4224,6 +4592,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RevisionSummary'
+    StartConnect:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Shown on the approval page, for example `Claude Code`.
     TopicRanking:
       type: object
       required:
@@ -4293,6 +4669,48 @@ components:
           description: '`insufficient_credits`, `agent_failed` or `failed`.'
         message:
           type: string
+    UpdateNotificationRule:
+      type: object
+      properties:
+        batchWindowMinutes:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        batchingEnabled:
+          type:
+          - boolean
+          - 'null'
+        channels:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        isActive:
+          type:
+          - boolean
+          - 'null'
+        quietHours:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/QuietHours'
+            description: An object sets quiet hours. `null` clears them. Leave it out to keep them.
+    UpdateWebhook:
+      type: object
+      properties:
+        enabled:
+          type:
+          - boolean
+          - 'null'
+        name:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
     Usage:
       type: object
       required:
@@ -4317,6 +4735,36 @@ components:
           type: integer
           format: int64
           description: Scans started in the current UTC day.
+    Webhook:
+      type: object
+      required:
+      - id
+      - name
+      - url
+      - enabled
+      - createdAt
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        enabled:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+    WebhookList:
+      type: object
+      required:
+      - webhooks
+      properties:
+        webhooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Webhook'
   securitySchemes:
     bearerAuth:
       type: http

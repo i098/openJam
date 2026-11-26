@@ -21,6 +21,8 @@ pub enum Error {
         "scan cap of {cap} a day reached; raise OPENJAM_SCAN_CAP_PER_DAY or wait for 00:00 UTC"
     )]
     CapReached { cap: u32 },
+    #[error("too many requests; wait a moment and try again")]
+    RateLimited,
     #[error("not implemented in this build")]
     NotImplemented,
     #[error(transparent)]
@@ -40,6 +42,7 @@ impl Error {
             Self::NotFound(_) => 404,
             Self::Conflict(_) => 409,
             Self::CapReached { .. } => 429,
+            Self::RateLimited => 429,
             Self::NotImplemented => 501,
             Self::Database(_) | Self::Migrate(_) | Self::Internal(_) => 500,
         }
@@ -55,6 +58,7 @@ impl Error {
             Self::NotFound(_) => "not_found",
             Self::Conflict(_) => "conflict",
             Self::CapReached { .. } => "cap_reached",
+            Self::RateLimited => "rate_limited",
             Self::NotImplemented => "not_implemented",
             Self::Database(_) | Self::Migrate(_) | Self::Internal(_) => "internal_error",
         }

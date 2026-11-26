@@ -491,27 +491,6 @@ pub async fn complete_action_with_token(_principal: crate::auth::Principal) -> c
 }
 
 #[utoipa::path(
-    post, path = "/v1/agent-connect", tag = "Agent connect", operation_id = "start_agent_connect",
-    summary = "Post /v1/agent-connect (not built yet)",
-
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn start_agent_connect() -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/agent-connect/{pollToken}", tag = "Agent connect", operation_id = "get_agent_connect",
-    summary = "Get /v1/agent-connect/{pollToken} (not built yet)",
-
-    params(("pollToken" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_agent_connect() -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
     get, path = "/v1/pricing", tag = "Pricing", operation_id = "get_pricing",
     summary = "Get /v1/pricing (not built yet)",
 
@@ -630,69 +609,6 @@ pub async fn get_billing(_principal: crate::auth::Principal) -> crate::Result<()
 }
 
 #[utoipa::path(
-    get, path = "/v1/webhooks", tag = "Webhooks", operation_id = "list_webhooks",
-    summary = "Get /v1/webhooks (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_webhooks(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/webhooks", tag = "Webhooks", operation_id = "create_webhook",
-    summary = "Post /v1/webhooks (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn create_webhook(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    patch, path = "/v1/webhooks/{webhookId}", tag = "Webhooks", operation_id = "update_webhook",
-    summary = "Patch /v1/webhooks/{webhookId} (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("webhookId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn update_webhook(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    delete, path = "/v1/webhooks/{webhookId}", tag = "Webhooks", operation_id = "delete_webhook",
-    summary = "Delete /v1/webhooks/{webhookId} (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("webhookId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn delete_webhook(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/notification-rules", tag = "Notifications", operation_id = "list_notification_rules",
-    summary = "Get /v1/notification-rules (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_notification_rules(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    patch, path = "/v1/notification-rules/{category}", tag = "Notifications", operation_id = "update_notification_rule",
-    summary = "Patch /v1/notification-rules/{category} (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("category" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn update_notification_rule(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
     put, path = "/v1/usage/cap", tag = "Usage", operation_id = "set_usage_cap",
     summary = "Put /v1/usage/cap (not built yet)",
         security(("bearerAuth" = [])),
@@ -770,8 +686,6 @@ pub fn stub_routes() -> utoipa_axum::router::OpenApiRouter<crate::state::AppStat
         .routes(utoipa_axum::routes!(check_action_again))
         .routes(utoipa_axum::routes!(create_action_execution))
         .routes(utoipa_axum::routes!(complete_action_with_token))
-        .routes(utoipa_axum::routes!(start_agent_connect))
-        .routes(utoipa_axum::routes!(get_agent_connect))
         .routes(utoipa_axum::routes!(get_pricing))
         .routes(utoipa_axum::routes!(get_site_change))
         .routes(utoipa_axum::routes!(discard_site_change))
@@ -783,12 +697,6 @@ pub fn stub_routes() -> utoipa_axum::router::OpenApiRouter<crate::state::AppStat
         .routes(utoipa_axum::routes!(update_brand_competitor))
         .routes(utoipa_axum::routes!(remove_brand_competitor))
         .routes(utoipa_axum::routes!(get_billing))
-        .routes(utoipa_axum::routes!(list_webhooks))
-        .routes(utoipa_axum::routes!(create_webhook))
-        .routes(utoipa_axum::routes!(update_webhook))
-        .routes(utoipa_axum::routes!(delete_webhook))
-        .routes(utoipa_axum::routes!(list_notification_rules))
-        .routes(utoipa_axum::routes!(update_notification_rule))
         .routes(utoipa_axum::routes!(set_usage_cap))
         .routes(utoipa_axum::routes!(get_engines))
         .routes(utoipa_axum::routes!(put_engines))

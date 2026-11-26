@@ -128,7 +128,7 @@ function AddPrompt({ onAdded }: { onAdded: () => void }) {
       <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row">
         <Input
           aria-label="Prompt text"
-          placeholder="What would your customer ask an AI assistant?"
+          placeholder="What would a customer ask an AI?"
           required
           minLength={3}
           maxLength={500}

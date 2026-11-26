@@ -167,7 +167,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/agent-connect (not built yet) */
+        /** Start an agent connect session */
         post: operations["start_agent_connect"];
         delete?: never;
         options?: never;
@@ -182,7 +182,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/agent-connect/{pollToken} (not built yet) */
+        /** Poll an agent connect session */
         get: operations["get_agent_connect"];
         put?: never;
         post?: never;
@@ -682,6 +682,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/events/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream workspace events */
+        get: operations["stream_events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/keywords": {
         parameters: {
             query?: never;
@@ -723,7 +740,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/notification-rules (not built yet) */
+        /** Notification rules */
         get: operations["list_notification_rules"];
         put?: never;
         post?: never;
@@ -746,8 +763,42 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Patch /v1/notification-rules/{category} (not built yet) */
+        /** Change a notification rule */
         patch: operations["update_notification_rule"];
+        trace?: never;
+    };
+    "/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The notification inbox */
+        get: operations["list_notifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark notifications read */
+        post: operations["mark_notifications_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/opportunities": {
@@ -1294,10 +1345,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/webhooks (not built yet) */
+        /** List webhooks */
         get: operations["list_webhooks"];
         put?: never;
-        /** Post /v1/webhooks (not built yet) */
+        /** Add a webhook */
         post: operations["create_webhook"];
         delete?: never;
         options?: never;
@@ -1315,11 +1366,11 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete /v1/webhooks/{webhookId} (not built yet) */
+        /** Remove a webhook */
         delete: operations["delete_webhook"];
         options?: never;
         head?: never;
-        /** Patch /v1/webhooks/{webhookId} (not built yet) */
+        /** Rename, enable or disable a webhook */
         patch: operations["update_webhook"];
         trace?: never;
     };
@@ -1546,6 +1597,29 @@ export interface components {
             /** @description The address an article is published at, with `{slug}` where its slug goes. */
             publicRoutePattern: string;
         };
+        ConnectStarted: {
+            /** @description Open this address in a browser to approve. */
+            connectUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /**
+             * Format: int32
+             * @description Wait this long between polls.
+             */
+            intervalSeconds: number;
+            /** @description Secret for polling. Keep it in the agent. */
+            pollToken: string;
+            /** @description The code the approval page shows, `XXXX-XXXX`. */
+            userCode: string;
+        };
+        ConnectStatus: {
+            /** @description The API key. In the first `approved` reply only. */
+            apiKey?: string | null;
+            /** @description `pending`, `approved`, `claimed` (the key was handed out already) or `expired`. */
+            status: string;
+            /** Format: uuid */
+            workspaceId?: string | null;
+        };
         Connection: {
             message?: string | null;
             /** @description `ok` or `problem`. */
@@ -1621,11 +1695,20 @@ export interface components {
             name: string;
             siteUrl?: string | null;
         };
+        CreateWebhook: {
+            name: string;
+            /** @description An `http` or `https` address that accepts `POST`. */
+            url: string;
+        };
         CreatedContent: {
             /** Format: uuid */
             contentId: string;
             /** Format: uuid */
             revisionId: string;
+        };
+        CreatedWebhook: components["schemas"]["Webhook"] & {
+            /** @description Verifies the `X-OpenJam-Signature` header. Shown once; store it now. */
+            signingSecret: string;
         };
         Deliveries: {
             deliveries: components["schemas"]["Delivery"][];
@@ -1750,6 +1833,10 @@ export interface components {
             /** @description The public page the content is live at; http or https. */
             url: string;
         };
+        MarkRead: {
+            /** @description These notifications. Leave it out to mark every unread one. */
+            ids?: string[] | null;
+        };
         Me: {
             project?: null | components["schemas"]["MeProject"];
             user: components["schemas"]["MeUser"];
@@ -1841,6 +1928,40 @@ export interface components {
              */
             value?: number | null;
         };
+        Notification: {
+            body: unknown;
+            category?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description The event type, for example `scan.complete`. `batch.<category>` for a merged one. */
+            kind: string;
+            /** Format: date-time */
+            readAt?: string | null;
+        };
+        NotificationList: {
+            notifications: components["schemas"]["Notification"][];
+            /**
+             * Format: int64
+             * @description Unread in this workspace, not only on this page.
+             */
+            unreadCount: number;
+        };
+        NotificationRule: {
+            /** Format: int32 */
+            batchWindowMinutes: number;
+            /** @description Merge inbox notifications of this category that arrive within the window. */
+            batchingEnabled: boolean;
+            /** @description `action_required`, `error`, `status_update`, `insight` or `completion`. */
+            category: string;
+            channels: string[];
+            isActive: boolean;
+            quietHours?: null | components["schemas"]["QuietHours"];
+        };
+        NotificationRuleList: {
+            rules: components["schemas"]["NotificationRule"][];
+        };
         PageInfo: {
             hasNextPage: boolean;
             /** Format: int64 */
@@ -1931,6 +2052,14 @@ export interface components {
             /** @description Send `"now"` to publish now. Send this or `publishAt`, not both. */
             when?: string | null;
         };
+        QuietHours: {
+            /** @description Local time, `HH:MM`. Earlier than `start` means the window crosses midnight. */
+            end: string;
+            /** @description Local time, `HH:MM`. */
+            start: string;
+            /** @description An IANA zone, for example `Europe/Berlin`. */
+            timezone: string;
+        };
         RegenerateContent: {
             /**
              * Format: uuid
@@ -1961,6 +2090,10 @@ export interface components {
         Revisions: {
             revisions: components["schemas"]["RevisionSummary"][];
         };
+        StartConnect: {
+            /** @description Shown on the approval page, for example `Claude Code`. */
+            name?: string | null;
+        };
         TopicRanking: {
             /** Format: int64 */
             answerCount: number;
@@ -1989,6 +2122,19 @@ export interface components {
             code: string;
             message: string;
         };
+        UpdateNotificationRule: {
+            /** Format: int32 */
+            batchWindowMinutes?: number | null;
+            batchingEnabled?: boolean | null;
+            channels?: string[] | null;
+            isActive?: boolean | null;
+            quietHours?: null | components["schemas"]["QuietHours"];
+        };
+        UpdateWebhook: {
+            enabled?: boolean | null;
+            name?: string | null;
+            url?: string | null;
+        };
         Usage: {
             /** Format: double */
             cost_cents_month: number;
@@ -2004,6 +2150,18 @@ export interface components {
              * @description Scans started in the current UTC day.
              */
             scans_today: number;
+        };
+        Webhook: {
+            /** Format: date-time */
+            createdAt: string;
+            enabled: boolean;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            url: string;
+        };
+        WebhookList: {
+            webhooks: components["schemas"]["Webhook"][];
         };
     };
     responses: never;
@@ -2238,9 +2396,21 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["StartConnect"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectStarted"];
+                };
+            };
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2255,14 +2425,22 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The `pollToken` from the start call */
                 pollToken: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectStatus"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3838,6 +4016,40 @@ export interface operations {
             };
         };
     };
+    stream_events: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Send events with an id above this one. The `Last-Event-ID` header does the same.
+                 *     With neither, the stream starts at the next new event.
+                 */
+                after?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Server-sent events */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
     list_keywords: {
         parameters: {
             query?: {
@@ -3922,7 +4134,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRuleList"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3937,14 +4157,104 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description `action_required`, `error`, `status_update`, `insight` or `completion` */
                 category: string;
             };
             cookie?: never;
         };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateNotificationRule"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRule"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    list_notifications: {
+        parameters: {
+            query?: {
+                /** @description `true`: only unread ones. */
+                unread?: boolean;
+                /** @description 1 to 100. The default is 30. */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationList"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    mark_notifications_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["MarkRead"];
+            };
+        };
+        responses: {
+            /** @description Marked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4879,7 +5189,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookList"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4896,9 +5214,29 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWebhook"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedWebhook"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4913,14 +5251,29 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The webhook to remove */
                 webhookId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4935,14 +5288,42 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The webhook to change */
                 webhookId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWebhook"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

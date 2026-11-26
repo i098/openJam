@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/core", "crates/engines", "crates/api", "crates/worker", "crates/runner", "crates/publish"]
+members = ["crates/core", "crates/engines", "crates/api", "crates/worker", "crates/runner", "crates/mcp", "crates/publish"]
 
 [workspace.package]
 version = "0.1.0"
@@ -11,8 +11,12 @@ publish = false
 [workspace.dependencies]
 openjam-core = { path = "crates/core" }
 openjam-engines = { path = "crates/engines" }
+openjam-mcp = { path = "crates/mcp" }
 openjam-publish = { path = "crates/publish" }
 async-trait = "0.1"
+chrono-tz = "0.10"
+hmac = "0.12"
+tower = { version = "0.5", features = ["util"] }
 argon2 = "0.5"
 axum = "0.8"
 base64 = "0.22"

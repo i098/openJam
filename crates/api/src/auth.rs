@@ -1,4 +1,4 @@
-//! Session cookies for the dashboard, `sk_...` bearer keys for the API, and the auth routes.
+//! Session cookies for the dashboard, `sk_...` and OAuth bearer tokens for the API, and the auth routes.
 
 use crate::error::{ApiError, Result};
 use crate::{state::AppState, types::*};
@@ -11,7 +11,10 @@ use axum::{
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use openjam_core::{
     Error,
-    auth::{API_KEY_PREFIX, hash_password, new_session_token, sha256_hex, verify_password},
+    auth::{
+        API_KEY_PREFIX, OAUTH_ACCESS_PREFIX, hash_password, new_session_token, sha256_hex,
+        verify_password,
+    },
 };
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -96,9 +99,15 @@ impl FromRequestParts<AppState> for Principal {
                 .ok()
                 .and_then(|v| v.strip_prefix("Bearer "))
                 .map(str::trim);
-            let Some(token) = token.filter(|t| t.starts_with(API_KEY_PREFIX)) else {
+            let Some(token) = token else {
                 return Err(ApiError(Error::Unauthorized));
             };
+            if token.starts_with(OAUTH_ACCESS_PREFIX) {
+                return oauth_principal(&state.pool, token).await.map(Self::Key);
+            }
+            if !token.starts_with(API_KEY_PREFIX) {
+                return Err(ApiError(Error::Unauthorized));
+            }
             return key_principal(&state.pool, token).await.map(Self::Key);
         }
         let jar = CookieJar::from_headers(&parts.headers);
@@ -112,7 +121,7 @@ impl FromRequestParts<AppState> for Principal {
     }
 }
 
-async fn session_principal(pool: &PgPool, token: &str) -> Result<SessionUser> {
+pub(crate) async fn session_principal(pool: &PgPool, token: &str) -> Result<SessionUser> {
     let row: Option<(Uuid, Uuid, String, String, Option<String>)> = sqlx::query_as(
         "SELECT u.id, m.workspace_id, m.role, u.email, u.name
          FROM sessions s
@@ -135,6 +144,60 @@ async fn session_principal(pool: &PgPool, token: &str) -> Result<SessionUser> {
         email,
         name,
     })
+}
+
+/// An OAuth access token acts like an API key: the user's workspace, no owner-only actions.
+async fn oauth_principal(pool: &PgPool, token: &str) -> Result<KeyUser> {
+    let row: Option<(Uuid, Uuid, Uuid, String, Option<String>)> = sqlx::query_as(
+        "SELECT t.id, t.workspace_id, u.id, u.email, u.name
+         FROM oauth_tokens t JOIN users u ON u.id = t.user_id
+         WHERE t.access_hash = $1 AND t.revoked_at IS NULL AND t.expires_at > now()",
+    )
+    .bind(sha256_hex(token))
+    .fetch_optional(pool)
+    .await?;
+    let Some((key_id, workspace_id, user_id, email, name)) = row else {
+        return Err(ApiError(Error::Unauthorized));
+    };
+    Ok(KeyUser {
+        key_id,
+        workspace_id,
+        user_id,
+        email,
+        name,
+    })
+}
+
+/// Check an email and password, for the consent pages that a signed-out person opens.
+pub(crate) async fn password_principal(
+    pool: &PgPool,
+    email: &str,
+    password: &str,
+) -> Result<Option<SessionUser>> {
+    let row: Option<(Uuid, Option<String>, Option<String>, String)> =
+        sqlx::query_as("SELECT id, password_hash, name, email FROM users WHERE lower(email) = $1")
+            .bind(email.trim().to_lowercase())
+            .fetch_optional(pool)
+            .await?;
+    let Some((user_id, Some(hash), name, email)) = row else {
+        return Ok(None);
+    };
+    if !verify_password(password, &hash) {
+        return Ok(None);
+    }
+    let (workspace_id, role): (Uuid, String) = sqlx::query_as(
+        "SELECT workspace_id, role FROM memberships WHERE user_id = $1 ORDER BY created_at LIMIT 1",
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await?;
+    Ok(Some(SessionUser {
+        user_id,
+        workspace_id,
+        role: role_from(&role),
+        email,
+        name,
+    }))
 }
 
 async fn key_principal(pool: &PgPool, token: &str) -> Result<KeyUser> {

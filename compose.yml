@@ -27,6 +27,9 @@ services:
       # No scan limit by default. Set a number to cap scans per UTC day, per workspace.
       OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
       OPENJAM_LOG_FORMAT: ${OPENJAM_LOG_FORMAT:-json}
+      # The address people and agents use to reach openJam, for OAuth and agent-connect links.
+      # Empty: taken from the request headers. Set it on any install that others can reach.
+      OPENJAM_PUBLIC_URL: ${OPENJAM_PUBLIC_URL:-}
       OPENJAM_GITHUB_APP_ID: ${OPENJAM_GITHUB_APP_ID:-}
       OPENJAM_GITHUB_APP_PRIVATE_KEY: ${OPENJAM_GITHUB_APP_PRIVATE_KEY:-}
       OPENJAM_GITHUB_API_URL: ${OPENJAM_GITHUB_API_URL:-}
