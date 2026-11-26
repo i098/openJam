@@ -3,15 +3,23 @@
 @theme {
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(240 10% 6%);
-  --color-muted: hsl(240 5% 42%);
+  --color-muted: hsl(240 5% 38%);
   --color-border: hsl(240 6% 90%);
   --color-surface: hsl(240 20% 98%);
   --color-primary: hsl(168 76% 30%);
   --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary-soft: hsl(168 50% 94%);
   --color-danger: hsl(0 72% 46%);
+  --color-success: hsl(145 63% 30%);
+  --color-warning: hsl(32 90% 36%);
+  --color-series-1: hsl(168 76% 30%);
+  --color-series-2: hsl(222 70% 52%);
+  --color-series-3: hsl(32 90% 48%);
+  --color-series-4: hsl(330 60% 48%);
 }
 
 body {
   @apply bg-background text-foreground antialiased;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
 }
