@@ -14,7 +14,7 @@ docker compose ps           # wait until api shows "healthy"
 ```
 
 The first build compiles the Rust binaries and takes several minutes.
-Open <http://localhost:8080> and create an account. The first account owns the workspace.
+Open `http://localhost:8080` (`OPENJAM_PORT`) and create an account. Each account gets its own workspace.
 To stop new sign-ups after that, set `OPENJAM_ALLOW_SIGNUP=false` in `.env` and run `docker compose up -d`.
 
 Check the stack:
@@ -25,12 +25,11 @@ curl -fsS http://127.0.0.1:8081/readyz         # {"database":"up","migrations":8
 ```
 
 The migration count grows with each release.
-
 Migrations run when the `api` and `worker` start. You do not run them by hand.
 
 ### Run a second install on one host
 
-Compose names the project after `name:` in `compose.yml` (`openjam`), so a second stack on the host needs its own name, ports and database name. Put them in its `.env`:
+Compose names the project after `name:` in `compose.yml` (`openjam`), so a second stack needs its own name, ports and database name. Change `OPENJAM_PORT` in `.env` and add the rest:
 
 ```sh
 COMPOSE_PROJECT_NAME=openjam-two
@@ -39,7 +38,7 @@ OPENJAM_API_PORT=9081      # API and /metrics
 OPENJAM_DB_NAME=openjam_two
 ```
 
-The database port is not published by default. When you need it on the host, add a `compose.override.yml` beside `compose.yml`; Compose loads it by itself:
+The database port is not published by default. To publish it, add a `compose.override.yml` beside `compose.yml`; Compose loads it by itself:
 
 ```yaml
 services:
@@ -47,7 +46,7 @@ services:
     ports: ["127.0.0.1:15490:5432"]
 ```
 
-Each project owns its volumes, named after the project: `openjam-two_pgdata` and `openjam-two_secrets`. Set both before the first start; see [Back up](#back-up).
+Each project owns volumes named after it, for example `openjam-two_pgdata` and `openjam-two_secrets`. Set both before the first start; see [Back up](#back-up).
 
 ## Configuration
 
@@ -55,19 +54,19 @@ Compose reads `.env` in the project directory. [.env.example](../.env.example) l
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `POSTGRES_PASSWORD` | `openjam` | Password of the Postgres user. It applies only when the volume is first created; see [Change the database password](#change-the-database-password). |
-| `OPENJAM_DB_NAME` | `openjam` | Database inside Postgres. It applies only when the volume is first created. |
+| `POSTGRES_PASSWORD` | `openjam` | Password of the Postgres user. Applies only when the volume is first created; see [Change the database password](#change-the-database-password). |
+| `OPENJAM_DB_NAME` | `openjam` | Database inside Postgres. Applies only when the volume is first created. |
 | `OPENJAM_PORT` | `8080` | Host port of the web app. |
 | `OPENJAM_API_PORT` | `8081` | Host port of the API, `/readyz` and `/metrics`. Bound to `127.0.0.1`. |
-| `OPENJAM_PUBLIC_URL` | empty | The address people and agents use to reach openJam, for OAuth and agent-connect links. Empty: taken from the request headers. Set it on any install that others can reach. |
+| `OPENJAM_PUBLIC_URL` | empty | Address people and agents use to reach openJam, for OAuth and agent-connect links. Empty: from the request headers. Set it on any install others can reach. |
 | `OPENJAM_SCAN_CAP_PER_DAY` | empty | Empty: no scan limit. A number: the most scans a workspace may start per UTC day. Over the cap, `/v1` answers `429 cap_reached`. |
-| `OPENJAM_COOKIE_SECURE` | `false` | Set `true` when you serve the site over HTTPS, so the browser sends the session cookie only on HTTPS. |
+| `OPENJAM_COOKIE_SECURE` | `false` | Set `true` under HTTPS, so the browser sends the session cookie only on HTTPS. |
 | `OPENJAM_ALLOW_SIGNUP` | `true` | `false` closes `/auth/signup`. |
 | `OPENJAM_SESSION_DAYS` | `30` | Days a dashboard sign-in stays valid. |
 | `RUST_LOG` | `info` | Log filter. Example: `openjam_api=debug,info`. |
 | `OPENJAM_LOG_FORMAT` | `json` | API log format: `json` or `text`. |
-| `OPENJAM_GITHUB_APP_ID` | empty | Id of your GitHub App. Empty turns publishing to GitHub off. |
-| `OPENJAM_GITHUB_APP_PRIVATE_KEY` | empty | The App's private key (PEM) with each newline written as `\n`. A file works too when you run the binaries by hand: set `OPENJAM_GITHUB_APP_PRIVATE_KEY_FILE`. |
+| `OPENJAM_GITHUB_APP_ID` | empty | Id of your GitHub App. Empty turns publishing off. |
+| `OPENJAM_GITHUB_APP_PRIVATE_KEY` | empty | The App's private key (PEM) with each newline written as `\n`. When you run the binaries by hand, a file works too: `OPENJAM_GITHUB_APP_PRIVATE_KEY_FILE`. |
 | `OPENJAM_GITHUB_REPOS` | empty | Repositories that may be connected, as `owner/name` separated by commas. Empty allows every repository the App is installed on. Set it when more than one person signs up. |
 | `OPENJAM_GITHUB_API_URL` | `https://api.github.com` | Set it for GitHub Enterprise Server. |
 | `DATABASE_URL` | set by `compose.yml` | Postgres connection string. Required when you run the binaries by hand. |
@@ -85,7 +84,7 @@ openJam opens a pull request with each article. It never pushes to your base bra
 1. In GitHub, open **Settings → Developer settings → GitHub Apps → New GitHub App**. Leave the webhook off. Set **Contents** and **Pull requests** to *Read and write*. Choose where it may be installed.
 2. Generate a private key and note the App id. Put both in `.env` as shown above, then run `docker compose up -d`.
 3. Install the App on the repository that holds your site.
-4. In the dashboard (or with `PUT /v1/destinations/{id}/github`), connect the repository: owner, name, base branch, content folder and the public route, for example `/blog/{slug}`. One repository belongs to one destination, and `OPENJAM_GITHUB_REPOS` limits which repositories any workspace may connect.
+4. Connect the repository in the dashboard, or with `PUT /v1/destinations/{id}/github`: owner, name, base branch, content folder and public route, for example `/blog/{slug}`. One repository belongs to one destination, and `OPENJAM_GITHUB_REPOS` limits which repositories any workspace may connect.
 5. Publish an article. openJam opens the pull request, and the delivery goes `scheduled`, `in_review`, then `live` when you merge it. The worker polls the pull request; no webhook has to reach your install.
 
 ### HTTPS
@@ -97,7 +96,7 @@ The `web` container serves plain HTTP. Put a reverse proxy (Caddy, nginx, Traefi
 ## Health, logs and metrics
 
 The API listens on `127.0.0.1:8081` on the host (`OPENJAM_API_PORT`), and on `api:8080` inside the Compose network.
-The `web` container proxies only `/healthz`; use port 8081 for the other two.
+The `web` container proxies only `/healthz`; use the API port for the other two.
 
 | Endpoint | Use it for | Answer |
 |---|---|---|
@@ -105,7 +104,7 @@ The `web` container proxies only `/healthz`; use port 8081 for the other two.
 | `GET /readyz` | Readiness. The database answers and every migration succeeded. | `200`, or `503` with `"database":"down"` or `failed_migrations`. |
 | `GET /metrics` | Prometheus scrape. | Text format, below. |
 
-`/metrics` has no authentication. Keep port 8081 bound to `127.0.0.1` or behind your firewall.
+`/metrics` has no authentication. Keep the API port bound to `127.0.0.1` or behind your firewall.
 
 | Metric | Type | Meaning |
 |---|---|---|
@@ -167,7 +166,7 @@ Back up the key too. It changes only when the volume is first created:
 docker run --rm -v openjam_secrets:/data -v "$PWD":/backup alpine tar czf /backup/openjam-secrets.tar.gz -C /data .
 ```
 
-The volume names carry the Compose project name; prefix both with it when it is not `openjam`.
+Volume names carry the Compose project name; prefix both when it is not `openjam`.
 Run these from cron for a daily backup, and copy the files off the host. Keep `.env` with them.
 
 Raw volume copy (stop the stack first, so the files are consistent):

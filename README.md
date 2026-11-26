@@ -21,7 +21,7 @@ Upgrade, backup, restore, health checks and metrics: [docs/install.md](docs/inst
 
 | Service | What it does |
 |---|---|
-| `web` | SPA and one nginx origin. It proxies `/v1`, `/auth`, `/healthz` and `/openapi.json` to the API. |
+| `web` | SPA and one nginx origin. It proxies `/v1`, `/auth`, `/healthz`, `/openapi.json`, `/mcp`, `/oauth`, `/connect/` and `/.well-known/oauth-*` to the API. |
 | `api` | Rust API: sessions, API keys, the `/v1` contract, migrations on start, `/healthz`, `/readyz`, `/metrics`. |
 | `worker` | Rust job worker: claims Postgres jobs, retries with backoff, keeps a minute tick. |
 | `db` | Postgres 16. Migrations in `migrations/`. |
