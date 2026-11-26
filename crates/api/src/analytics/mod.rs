@@ -35,8 +35,8 @@ impl<T: DeserializeOwned, S: Send + Sync> FromRequestParts<S> for Q<T> {
     }
 }
 
-struct Project {
-    id: Uuid,
+pub(crate) struct Project {
+    pub(crate) id: Uuid,
     name: String,
     domain: String,
     status: String,
@@ -68,7 +68,7 @@ impl Project {
     }
 }
 
-async fn find_project(
+pub(crate) async fn find_project(
     state: &AppState,
     principal: &Principal,
     project_id: Option<Uuid>,

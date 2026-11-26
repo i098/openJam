@@ -13,7 +13,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/action-completions/{token} (not built yet) */
+        /**
+         * Report an action done with its token
+         * @description For the agent that did the work: the token in the action's prompt reports that one action done. No API key needed.
+         */
         post: operations["complete_action_with_token"];
         delete?: never;
         options?: never;
@@ -28,7 +31,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/actions (not built yet) */
+        /**
+         * List the Plan
+         * @description The project's Plan, highest priority first, with the count in each status. Superseded actions are left out unless `includeSuperseded=true` or `status` names them. Paged: `limit` (default 100, at most 100) and `cursor`; `countsByStatus` covers every page.
+         */
         get: operations["list_actions"];
         put?: never;
         post?: never;
@@ -45,7 +51,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/actions/{actionId} (not built yet) */
+        /**
+         * Get an action
+         * @description Everything to do one action: evidence (`details`, `sources`), prompts to move (`questions`), target page, history, latest check, and `agentPrompt` (instructions for your agent, ending with how to report the work).
+         */
         get: operations["get_action"];
         put?: never;
         post?: never;
@@ -64,7 +73,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/actions/{actionId}/checks (not built yet) */
+        /**
+         * Check an action again
+         * @description Re-verify a `done` or `unverified` action: a new done claim (at `url`, else the last claim's page) that Jam checks again. 409 when the action is not `done` or `unverified`.
+         */
         post: operations["check_action_again"];
         delete?: never;
         options?: never;
@@ -81,7 +93,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/actions/{actionId}/completion (not built yet) */
+        /**
+         * Report an action done
+         * @description Report an action done, optionally with the URL of the finished work. Jam then checks the page once (status `done`, then `verified` or `unverified`). 409 for a dismissed or superseded action.
+         */
         post: operations["complete_action"];
         delete?: never;
         options?: never;
@@ -98,9 +113,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/actions/{actionId}/dismissal (not built yet) */
+        /**
+         * Dismiss an action
+         * @description Take an open action off the Plan (status `dismissed`). `DELETE` restores it. Safe to repeat.
+         */
         post: operations["dismiss_action"];
-        /** Delete /v1/actions/{actionId}/dismissal (not built yet) */
+        /**
+         * Restore a dismissed action
+         * @description Put a dismissed action back on the Plan, as it was before the dismissal. Safe to repeat on a restored action only through `409`: only a dismissed action can be restored.
+         */
         delete: operations["restore_action"];
         options?: never;
         head?: never;
@@ -116,7 +137,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/actions/{actionId}/executions (not built yet) */
+        /**
+         * Have Jam do an action
+         * @description Ask Jam to do the work. An action linked to an article is drafted in the background. Other work, and the `agent` mode, is not available in this build: 422 names the reason, and `agentPrompt` tells your agent what to do. 409 when the article is held, dismissed or written.
+         */
         post: operations["create_action_execution"];
         delete?: never;
         options?: never;
@@ -133,7 +157,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/actions/{actionId}/sent (not built yet) */
+        /**
+         * Report an outreach pitch sent
+         * @description Outreach only: the pitch went out; the third party has not acted yet (status `sent`). 422 for any other kind. Safe to repeat.
+         */
         post: operations["report_action_sent"];
         delete?: never;
         options?: never;
@@ -150,7 +177,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/actions/{actionId}/start (not built yet) */
+        /**
+         * Start an action
+         * @description Record that work on the action has begun (status `in_progress`). To take a started action off the Plan, dismiss it. Safe to repeat.
+         */
         post: operations["start_action"];
         delete?: never;
         options?: never;
@@ -791,7 +821,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/opportunities (not built yet) */
+        /**
+         * List opportunities
+         * @description The project's article opportunities and their states, highest score first. Opportunities are the article pipeline behind the Plan's `new_page` actions; work from actions, and read an opportunity to write its article from the brief.
+         */
         get: operations["list_opportunities"];
         put?: never;
         post?: never;
@@ -808,7 +841,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/opportunities/{opportunityId} (not built yet) */
+        /**
+         * Get an opportunity
+         * @description One opportunity with its state and the research it came from.
+         */
         get: operations["get_opportunity"];
         put?: never;
         post?: never;
@@ -827,7 +863,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/opportunities/{opportunityId}/agent-failures (not built yet) */
+        /**
+         * Report that the agent failed
+         * @description Release the agent claim and record `reason` as the failure users see (`creationFailure.code` `agent_failed`). 409 when the opportunity already has content.
+         */
         post: operations["report_opportunity_agent_failure"];
         delete?: never;
         options?: never;
@@ -842,7 +881,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/opportunities/{opportunityId}/brief (not built yet) */
+        /**
+         * Get the brief of an opportunity
+         * @description What an agent needs to write the article: the opportunity, its prompts, brand voice, sources, the article plan from research, and the exact `POST /v1/content` body.
+         */
         get: operations["get_opportunity_brief"];
         put?: never;
         post?: never;
@@ -861,7 +903,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/opportunities/{opportunityId}/claims (not built yet) */
+        /**
+         * Claim an opportunity for an agent
+         * @description Hold the opportunity while your agent writes it: it becomes `claimed`, and neither Jam nor another agent writes it. Released by `POST /v1/content`, `DELETE .../claims/current`, `POST .../agent-failures`, or after 24 hours. 409 when it is already held, planned or dismissed.
+         */
         post: operations["claim_opportunity"];
         delete?: never;
         options?: never;
@@ -879,7 +924,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete /v1/opportunities/{opportunityId}/claims/current (not built yet) */
+        /**
+         * Release an agent claim
+         * @description Give the opportunity back without a result; it is open again. 404 when no agent claim is open.
+         */
         delete: operations["release_opportunity_claim"];
         options?: never;
         head?: never;
@@ -895,9 +943,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/opportunities/{opportunityId}/dismissal (not built yet) */
+        /**
+         * Dismiss an opportunity
+         * @description Dismiss an opportunity that has no content. Repeating it changes nothing. 422 when the opportunity has content (`has_content`, or `content_discarded` when that content is already discarded).
+         */
         post: operations["dismiss_opportunity"];
-        /** Delete /v1/opportunities/{opportunityId}/dismissal (not built yet) */
+        /**
+         * Restore an opportunity
+         * @description Undo a dismissal on an opportunity that has no content. Repeating it changes nothing. 422 when the opportunity has content.
+         */
         delete: operations["restore_opportunity"];
         options?: never;
         head?: never;
@@ -913,7 +967,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/opportunities/{opportunityId}/plan-requests (not built yet) */
+        /**
+         * Have Jam write an opportunity
+         * @description Jam researches, writes and reviews content for the opportunity (Plan, or Retry after a failure). Runs in the background; the content appears under /v1/content. 409 when the opportunity is held, dismissed or already written.
+         */
         post: operations["request_opportunity_plan"];
         delete?: never;
         options?: never;
@@ -1173,7 +1230,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/research (not built yet) */
+        /**
+         * Get the research state
+         * @description Research state: running or not, the latest run's timing and end, the run in flight, and whether Research again is accepted.
+         */
         get: operations["get_research"];
         put?: never;
         post?: never;
@@ -1192,7 +1252,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/research-requests (not built yet) */
+        /**
+         * Research again
+         * @description Ask Jam to research the active project again and rewrite the Plan. Takes about ten minutes; poll `GET /v1/research`. 409 while a run is in flight or the first scan has not finished.
+         */
         post: operations["create_research_request"];
         delete?: never;
         options?: never;
@@ -1207,7 +1270,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/research/report (not built yet) */
+        /**
+         * Get the latest research report
+         * @description The latest successful research: answers read, and each proposed action, best first, with its why, evidence and target prompts. `report` is null before any run succeeded.
+         */
         get: operations["get_research_report"];
         put?: never;
         post?: never;
@@ -1361,6 +1427,109 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Accepted: {
+            status: string;
+        };
+        Action: {
+            /**
+             * Format: uuid
+             * @description The content written for that opportunity, once there is any.
+             */
+            contentId?: string | null;
+            /** @description Whether `POST /v1/actions/{id}/executions` would have Jam do this now. */
+            executableByJam: boolean;
+            /** Format: uuid */
+            id: string;
+            /** @description `high`, `medium` or `low`. */
+            impact: string;
+            /** @description `page_edit`, `new_page`, `outreach`, `technical` or `community`. */
+            kind: string;
+            /** Format: date-time */
+            lastSeenAt: string;
+            /** @description What to do with the action next. */
+            nextStep: string;
+            /**
+             * @description Why not, when `executable_by_jam` is false: `closed`, `already_drafted`, `not_jam_work`,
+             *     `needs_github`, `no_page`.
+             */
+            notExecutableReason?: string | null;
+            /**
+             * Format: uuid
+             * @description The article opportunity behind the action, once Jam has one.
+             */
+            opportunityId?: string | null;
+            /** @description The gap the action closes. */
+            problem: string;
+            /**
+             * Format: int32
+             * @description Priority within the Plan; 1 is first.
+             */
+            rank: number;
+            status: string;
+            targetUrl?: string | null;
+            title: string;
+            why: string;
+        };
+        ActionCheck: {
+            /** @description The page to check, when it moved. Defaults to the last claim. */
+            url?: string | null;
+        };
+        ActionCompletion: {
+            note?: string | null;
+            /** @description Where the finished work lives. */
+            url?: string | null;
+        };
+        ActionDetail: components["schemas"]["Action"] & {
+            /** @description Instructions for your agent, ending with how to report the work. */
+            agentPrompt: string;
+            /** @description Jam's prepared code change. Always null in this build. */
+            change?: unknown;
+            /** @description The latest check of a done claim: `{passed, evidence, url, at}`. */
+            check?: unknown;
+            /** @description The evidence and specifics research found. */
+            details: string[];
+            /** Format: date-time */
+            firstSeenAt: string;
+            /** @description Everything that happened to the action, oldest first. */
+            history: components["schemas"]["HistoryEvent"][];
+            kindLabel: string;
+            /** @description The tracked prompts this action should move: `{promptId, text}`. */
+            questions: unknown;
+            /** @description `research`, `planner` or `user`. */
+            source: string;
+            /** @description Pages research read for this action. */
+            sources: string[];
+        };
+        ActionExecution: {
+            /** Format: uuid */
+            changeId?: string | null;
+            chatUrl?: string | null;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            /** Format: uuid */
+            runId?: string | null;
+            status: string;
+            /** @description `draft`: Jam is writing the article; follow `opportunity_id`. */
+            work: string;
+        };
+        ActionExecutionRequest: {
+            /** @description `one_shot` (default): Jam drafts the work. `agent` is not available in this build. */
+            mode?: string | null;
+        };
+        ActionTransitionResult: {
+            status: string;
+        };
+        Actions: {
+            actions: components["schemas"]["Action"][];
+            countsByStatus: {
+                [key: string]: number;
+            };
+            pageInfo: components["schemas"]["PageInfo"];
+        };
+        AgentFailure: {
+            /** @description Why the article could not be written, in words a person can read. */
+            reason: string;
+        };
         AnalyticsBrand: {
             domain?: string | null;
             isOwned: boolean;
@@ -1509,6 +1678,25 @@ export interface components {
             /** Format: date-time */
             revokedAt?: string | null;
         };
+        AutomaticTopUp: {
+            eligibleNow: boolean;
+            /** Format: date-time */
+            notBefore?: string | null;
+        };
+        BrandVoice: {
+            audience?: string | null;
+            contentStyle?: string | null;
+            excludedTopics: string[];
+            name: string;
+            positioning?: string | null;
+            productDescription?: string | null;
+            tone?: string | null;
+        };
+        BriefResearch: {
+            evidenceBundleId: string;
+            /** @description The pages research read and what it recorded from each. */
+            sources: unknown;
+        };
         ChangeFeedItem: {
             /** Format: double */
             delta: number;
@@ -1517,6 +1705,21 @@ export interface components {
             providerId: string;
             /** Format: double */
             value: number;
+        };
+        /** @description Send `{}`. */
+        Claim: Record<string, never>;
+        ClaimOpened: {
+            /** Format: uuid */
+            claimId: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        ClaimView: {
+            /** Format: date-time */
+            claimedAt: string;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            kind: string;
         };
         ConnectStarted: {
             /** @description Open this address in a browser to approve. */
@@ -1556,6 +1759,31 @@ export interface components {
             /** @description Verifies the `X-OpenJam-Signature` header. Shown once; store it now. */
             signingSecret: string;
         };
+        EvidencePrompt: {
+            /** @description `absent` (the brand is in no answer) or `weak`. */
+            evidenceKind: string;
+            platform?: string | null;
+            promptId: string;
+            promptRunId?: string | null;
+            promptVersionId?: string | null;
+        };
+        HistoryEvent: {
+            actor: string;
+            /** Format: date-time */
+            at: string;
+            evidence?: string | null;
+            id: string;
+            note?: string | null;
+            type: string;
+            url?: string | null;
+        };
+        InFlightRun: {
+            kind: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: date-time */
+            requestedAt: string;
+        };
         IssueApiKey: {
             /** @description A name to recognize the key later. */
             name: string;
@@ -1566,6 +1794,27 @@ export interface components {
             /** @description Shown once. Store it now; the server keeps only its hash. */
             key: string;
             keyPrefix: string;
+        };
+        Language: {
+            code: string;
+            country?: string | null;
+            name: string;
+            nativeName: string;
+        };
+        LatestRun: {
+            failureMessage?: string | null;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            /** @description `first_scan`, `backfill`, `manual` or `top_up`. */
+            kind: string;
+            /** @description `success` or `failed`. */
+            outcome: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: date-time */
+            requestedAt: string;
+            /** Format: date-time */
+            startedAt?: string | null;
         };
         LeaderboardEntry: {
             /** Format: double */
@@ -1583,6 +1832,18 @@ export interface components {
             shareOfVoice?: number | null;
             /** Format: double */
             visibilityScore?: number | null;
+        };
+        ManualResearch: {
+            /** @description `in_progress` or `first_scan_running`; null when a request would be accepted. */
+            blockedBy?: string | null;
+            /**
+             * Format: int32
+             * @description Always 0.
+             */
+            credits: number;
+            eligible: boolean;
+            /** @description Always true: openJam has no credits. */
+            free: boolean;
         };
         MarkRead: {
             /** @description These notifications. Leave it out to mark every unread one. */
@@ -1713,6 +1974,73 @@ export interface components {
         NotificationRuleList: {
             rules: components["schemas"]["NotificationRule"][];
         };
+        Opportunities: {
+            opportunities: components["schemas"]["Opportunity"][];
+            pageInfo: components["schemas"]["PageInfo"];
+        };
+        Opportunity: {
+            /** @description For an update: what to change on the page. */
+            changeKind?: string | null;
+            claim?: null | components["schemas"]["ClaimView"];
+            /**
+             * Format: uuid
+             * @description The content created from it, if any.
+             */
+            contentId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description The last failure to create content from it: `{code, message, at}`. */
+            creationFailure?: unknown;
+            /** Format: date-time */
+            dismissedAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            intent: string;
+            /** @description `create_page` or `update_page`. */
+            kind: string;
+            persona: string;
+            /** Format: uuid */
+            projectId: string;
+            rationale: string;
+            /** Format: double */
+            score: number;
+            /** @description `open`, `planned`, `writing`, `claimed`, `creation_failed` or `dismissed`. */
+            state: string;
+            /** @description For an update: the page it changes. */
+            targetPageId?: string | null;
+            title: string;
+            topic: string;
+        };
+        OpportunityBrief: {
+            /** @description `null` for a page update, or when no plan was stored. */
+            articlePlan?: unknown;
+            /**
+             * Format: int32
+             * @description Always 0: the plan comes with the research.
+             */
+            creditsCharged: number;
+            /** @description The destination of the article. `null` until the project has one. */
+            delivery?: unknown;
+            intent: string;
+            kind: string;
+            /** Format: uuid */
+            opportunityId: string;
+            persona: string;
+            planUnavailable?: string | null;
+            rationale: string;
+            research: components["schemas"]["BriefResearch"];
+            submit: components["schemas"]["Submit"];
+            /** @description The questions users ask that this article should answer. */
+            targetPrompts: string[];
+            title: string;
+            topic: string;
+            voice: components["schemas"]["Voice"];
+        };
+        OpportunityDetail: components["schemas"]["Opportunity"] & {
+            /** @description Always empty: openJam has no demand queries. */
+            demandQueries: unknown[];
+            prompts: components["schemas"]["EvidencePrompt"][];
+        };
         PageInfo: {
             hasNextPage: boolean;
             /** Format: int64 */
@@ -1789,9 +2117,69 @@ export interface components {
             /** @description An IANA zone, for example `Europe/Berlin`. */
             timezone: string;
         };
+        ReportAction: {
+            details: string[];
+            /** Format: uuid */
+            id: string;
+            impact: string;
+            kind: string;
+            problem: string;
+            questions: unknown;
+            /** Format: int32 */
+            rank: number;
+            sources: string[];
+            status: string;
+            targetUrl?: string | null;
+            title: string;
+            why: string;
+        };
+        ResearchReport: {
+            actions: components["schemas"]["ReportAction"][];
+            /**
+             * Format: int32
+             * @description Proposals before two of the same work were merged.
+             */
+            actionsProposed?: number | null;
+            /** Format: int32 */
+            answersRead?: number | null;
+            /** Format: date-time */
+            finishedAt: string;
+            /** Format: uuid */
+            runId: string;
+        };
+        ResearchReportResult: {
+            report?: null | components["schemas"]["ResearchReport"];
+        };
+        ResearchRequest: {
+            charged: boolean;
+            /** Format: int32 */
+            credits: number;
+            /** Format: uuid */
+            requestId: string;
+            status: string;
+        };
+        ResearchState: {
+            /** @description Jam's own re-run. openJam starts only the first run by itself. */
+            automaticTopUp: components["schemas"]["AutomaticTopUp"];
+            /** Format: date-time */
+            finishedAt?: string | null;
+            inFlight?: null | components["schemas"]["InFlightRun"];
+            latest?: null | components["schemas"]["LatestRun"];
+            /** @description Research again, by hand. */
+            manual: components["schemas"]["ManualResearch"];
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** @description `never`, `running`, `done` or `failed`. */
+            state: string;
+        };
         StartConnect: {
             /** @description Shown on the approval page, for example `Claude Code`. */
             name?: string | null;
+        };
+        Submit: {
+            body: unknown;
+            method: string;
+            path: string;
         };
         TopicRanking: {
             /** Format: int64 */
@@ -1843,6 +2231,10 @@ export interface components {
              */
             scans_today: number;
         };
+        Voice: {
+            brand: components["schemas"]["BrandVoice"];
+            language: components["schemas"]["Language"];
+        };
         Webhook: {
             /** Format: date-time */
             createdAt: string;
@@ -1869,14 +2261,33 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The token from the action's prompt: `gac_` and 32 hex digits */
                 token: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionCompletion"];
+            };
+        };
         responses: {
-            501: {
+            /** @description Reported */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1888,14 +2299,49 @@ export interface operations {
     };
     list_actions: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description One or more statuses, comma separated. */
+                status?: string;
+                /** @description One or more kinds, comma separated. */
+                kind?: string;
+                /** @description Also list actions a later research run no longer proposes. */
+                includeSuperseded?: boolean;
+                /** @description Items per page, 1 to 100. The default is 100. */
+                limit?: number;
+                /** @description `pageInfo.nextCursor` of the page before. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Actions"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1910,14 +2356,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionDetail"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1932,14 +2394,50 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionCheck"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionTransitionResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1954,14 +2452,50 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionCompletion"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionTransitionResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1976,14 +2510,38 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionTransitionResult"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1998,14 +2556,38 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionTransitionResult"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2020,14 +2602,50 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionExecutionRequest"];
+            };
+        };
         responses: {
-            501: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionExecution"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2042,14 +2660,46 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionTransitionResult"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2064,14 +2714,38 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The action id */
                 actionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionTransitionResult"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3420,14 +4094,45 @@ export interface operations {
     };
     list_opportunities: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description One or more states, comma separated. */
+                state?: string;
+                /** @description Items per page, 1 to 100. The default is 100. */
+                limit?: number;
+                /** @description `pageInfo.nextCursor` of the page before. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Opportunities"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3442,14 +4147,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3464,14 +4185,48 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentFailure"];
+            };
+        };
         responses: {
-            501: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3486,14 +4241,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityBrief"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3508,14 +4279,42 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Claim"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimOpened"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3530,14 +4329,28 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3552,14 +4365,44 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3574,14 +4417,36 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3596,14 +4461,38 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The opportunity id */
                 opportunityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Accepted"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4114,7 +5003,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchState"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4133,7 +5038,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchRequest"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4152,7 +5081,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchReportResult"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
