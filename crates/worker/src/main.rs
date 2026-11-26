@@ -1,12 +1,10 @@
 //! The job worker: claims Postgres jobs, retries with backoff, and keeps a minute tick.
 
-use chrono::Utc;
 use openjam_core::{
     config::Config,
     db,
     jobs::{self, FailOutcome},
 };
-use serde_json::json;
 use sqlx::PgPool;
 use std::time::Duration;
 
@@ -29,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let worker_id = format!("worker-{}", std::process::id());
     tracing::info!("{worker_id} watching {WORKER_QUEUES:?}");
-    schedule_tick(&pool).await?;
+    spawn_maintenance(pool.clone());
 
     loop {
         match jobs::claim(&pool, WORKER_QUEUES, &worker_id).await {
@@ -56,11 +54,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-/// Queue the next maintenance tick: free stale jobs, then run again in one minute.
-async fn schedule_tick(pool: &PgPool) -> Result<(), openjam_core::Error> {
-    let key = format!("tick-{}", Utc::now().timestamp() / 60);
-    jobs::enqueue(pool, MAINTENANCE, &json!({"op": "tick"}), Some(&key), None).await?;
-    Ok(())
+/// Free jobs from a lost worker, every minute. One task, so the rate does not depend on job sleep.
+fn spawn_maintenance(pool: PgPool) {
+    tokio::spawn(async move {
+        let mut tick = tokio::time::interval(Duration::from_secs(60));
+        loop {
+            tick.tick().await;
+            match jobs::requeue_stale(&pool, STALE_SECS).await {
+                Ok(0) => {}
+                Ok(freed) => tracing::warn!(freed, "requeued jobs from a lost worker"),
+                Err(error) => tracing::error!(%error, "requeue failed"),
+            }
+        }
+    });
 }
 
 async fn run(pool: &PgPool, queue: &str, payload: &serde_json::Value) -> Result<(), String> {
@@ -72,7 +78,6 @@ async fn run(pool: &PgPool, queue: &str, payload: &serde_json::Value) -> Result<
             if freed > 0 {
                 tracing::warn!(freed, "requeued jobs from a lost worker");
             }
-            schedule_tick(pool).await.map_err(|e| e.to_string())?;
             Ok(())
         }
         other => Err(format!(
