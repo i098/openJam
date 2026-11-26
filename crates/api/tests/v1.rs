@@ -142,7 +142,7 @@ async fn rejects_bad_requests(pool: PgPool) {
     let (status, _, _body) = send(
         &app,
         Request::builder()
-            .uri("/v1/analytics/overview")
+            .uri("/v1/brand")
             .body(Body::empty())
             .unwrap(),
     )
@@ -164,7 +164,7 @@ async fn rejects_bad_requests(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::OK);
     let mut stub = Request::builder()
-        .uri("/v1/analytics/overview")
+        .uri("/v1/brand")
         .body(Body::empty())
         .unwrap();
     stub.headers_mut()

@@ -3,7 +3,7 @@ pub mod meta;
 pub mod projects;
 pub mod stubs;
 
-use crate::state::AppState;
+use crate::{analytics, answers, state::AppState};
 use axum::Router;
 use utoipa::openapi::{
     Info, Server,
@@ -26,6 +26,12 @@ pub fn build() -> (Router<AppState>, utoipa::openapi::OpenApi) {
             keys::create_api_key
         ))
         .routes(utoipa_axum::routes!(keys::revoke_api_key))
+        .routes(utoipa_axum::routes!(analytics::get_analytics_overview))
+        .routes(utoipa_axum::routes!(analytics::list_prompt_analytics))
+        .routes(utoipa_axum::routes!(analytics::list_analytics_metrics))
+        .routes(utoipa_axum::routes!(analytics::list_keywords))
+        .routes(utoipa_axum::routes!(answers::list_answers))
+        .routes(utoipa_axum::routes!(answers::list_prompt_answers))
         .merge(stubs::stub_routes())
         .split_for_parts();
 
