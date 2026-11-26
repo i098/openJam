@@ -218,14 +218,14 @@ function overview(rangeDays: number): AnalyticsOverview {
         },
       ],
       topicRankings: ['E-bikes', 'Gravel', 'Commuting'].map((topic, i) => ({
-        rankingAvailable: true,
         topic,
         promptCount: 2 + i,
-        eligibleObservationCount: 40,
-        ranked: BRANDS.map((b, bi) => ({
-          brandKey: b.key,
-          visibilityScore: Math.round(scores[b.key] + (i - bi) * 3),
-        })),
+        answerCount: 40,
+        visibilityScore: {
+          value: Math.round(scores[BRANDS[0].key] + i * 3),
+          delta: null,
+          deltaAvailable: false,
+        },
       })),
     },
   }
