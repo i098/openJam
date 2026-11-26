@@ -1,0 +1,64 @@
+name: openjam
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: openjam
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openjam}
+      POSTGRES_DB: openjam
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openjam -d openjam"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/openjam
+      OPENJAM_ALLOW_SIGNUP: ${OPENJAM_ALLOW_SIGNUP:-true}
+      OPENJAM_COOKIE_SECURE: ${OPENJAM_COOKIE_SECURE:-false}
+      OPENJAM_SESSION_DAYS: ${OPENJAM_SESSION_DAYS:-30}
+      # No scan limit by default. Set a number to cap scans per UTC day, per workspace.
+      OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: ["openjam-worker"]
+    environment:
+      DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/openjam
+      OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    build:
+      context: web
+    ports:
+      - "${OPENJAM_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
