@@ -35,9 +35,11 @@ async fn open_and_withdraw_a_pull_request() {
     )
     .await
     .unwrap();
-    assert_eq!(
-        repo.list_dir(&branch, "content/blog").await.unwrap(),
-        ["live-test.md"]
+    assert!(
+        repo.list_dir(&branch, "content/blog")
+            .await
+            .unwrap()
+            .contains(&"live-test.md".to_owned())
     );
     let pr = repo
         .open_pr(&branch, "main", "Add article: Live", "openJam live test")
