@@ -10,7 +10,9 @@ use openjam_engines::{
     secrets::Keyring,
     siwc::{OpenaiPlanEngine, Siwc, SiwcConfig},
 };
-use openjam_worker::{STALE_SECS, Services, WORKER_QUEUES, run_one, schedule_tick};
+use openjam_worker::{
+    STALE_SECS, Services, WORKER_QUEUES, pages::HttpPages, research_tick, run_one, schedule_tick,
+};
 use std::{path::Path, sync::Arc, time::Duration};
 
 const DEFAULT_KEY_FILE: &str = "/var/lib/openjam/master.key";
@@ -58,6 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pool: db.clone(),
         router: Router::new(pool, engines, JudgeModels::from_env()),
         scan_cap_per_day: config.scan_cap_per_day,
+        pages: Arc::new(HttpPages::from_env()),
     });
 
     let worker_id = format!("worker-{}", std::process::id());
@@ -69,6 +72,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(_) => {}
             Err(e) => tracing::error!(%e, "scheduler tick failed"),
+        }
+        match research_tick(&svc).await {
+            Ok(started) if !started.is_empty() => {
+                tracing::info!(runs = started.len(), "research runs started")
+            }
+            Ok(_) => {}
+            Err(e) => tracing::error!(%e, "research tick failed"),
         }
     });
     spawn_every(Duration::from_secs(60), svc.clone(), |svc| async move {

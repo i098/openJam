@@ -231,106 +231,6 @@ pub async fn replace_prompt(_principal: crate::auth::Principal) -> crate::Result
 }
 
 #[utoipa::path(
-    get, path = "/v1/opportunities", tag = "Opportunities", operation_id = "list_opportunities",
-    summary = "Get /v1/opportunities (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_opportunities(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/opportunities/{opportunityId}", tag = "Opportunities", operation_id = "get_opportunity",
-    summary = "Get /v1/opportunities/{opportunityId} (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_opportunity(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/opportunities/{opportunityId}/dismissal", tag = "Opportunities", operation_id = "dismiss_opportunity",
-    summary = "Post /v1/opportunities/{opportunityId}/dismissal (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn dismiss_opportunity(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    delete, path = "/v1/opportunities/{opportunityId}/dismissal", tag = "Opportunities", operation_id = "restore_opportunity",
-    summary = "Delete /v1/opportunities/{opportunityId}/dismissal (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn restore_opportunity(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/opportunities/{opportunityId}/plan-requests", tag = "Opportunities", operation_id = "request_opportunity_plan",
-    summary = "Post /v1/opportunities/{opportunityId}/plan-requests (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn request_opportunity_plan(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/opportunities/{opportunityId}/brief", tag = "Opportunities", operation_id = "get_opportunity_brief",
-    summary = "Get /v1/opportunities/{opportunityId}/brief (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_opportunity_brief(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/opportunities/{opportunityId}/claims", tag = "Opportunities", operation_id = "claim_opportunity",
-    summary = "Post /v1/opportunities/{opportunityId}/claims (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn claim_opportunity(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    delete, path = "/v1/opportunities/{opportunityId}/claims/current", tag = "Opportunities", operation_id = "release_opportunity_claim",
-    summary = "Delete /v1/opportunities/{opportunityId}/claims/current (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn release_opportunity_claim(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/opportunities/{opportunityId}/agent-failures", tag = "Opportunities", operation_id = "report_opportunity_agent_failure",
-    summary = "Post /v1/opportunities/{opportunityId}/agent-failures (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("opportunityId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn report_opportunity_agent_failure(
-    _principal: crate::auth::Principal,
-) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
     post, path = "/v1/plan-batches", tag = "Planning", operation_id = "create_plan_batch",
     summary = "Post /v1/plan-batches (not built yet)",
         security(("bearerAuth" = [])),
@@ -382,115 +282,6 @@ pub async fn get_credits(_principal: crate::auth::Principal) -> crate::Result<()
 }
 
 #[utoipa::path(
-    get, path = "/v1/actions", tag = "Actions", operation_id = "list_actions",
-    summary = "Get /v1/actions (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn list_actions(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/actions/{actionId}", tag = "Actions", operation_id = "get_action",
-    summary = "Get /v1/actions/{actionId} (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_action(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/actions/{actionId}/completion", tag = "Actions", operation_id = "complete_action",
-    summary = "Post /v1/actions/{actionId}/completion (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn complete_action(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/actions/{actionId}/start", tag = "Actions", operation_id = "start_action",
-    summary = "Post /v1/actions/{actionId}/start (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn start_action(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/actions/{actionId}/sent", tag = "Actions", operation_id = "report_action_sent",
-    summary = "Post /v1/actions/{actionId}/sent (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn report_action_sent(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/actions/{actionId}/dismissal", tag = "Actions", operation_id = "dismiss_action",
-    summary = "Post /v1/actions/{actionId}/dismissal (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn dismiss_action(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    delete, path = "/v1/actions/{actionId}/dismissal", tag = "Actions", operation_id = "restore_action",
-    summary = "Delete /v1/actions/{actionId}/dismissal (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn restore_action(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/actions/{actionId}/checks", tag = "Actions", operation_id = "check_action_again",
-    summary = "Post /v1/actions/{actionId}/checks (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn check_action_again(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/actions/{actionId}/executions", tag = "Actions", operation_id = "create_action_execution",
-    summary = "Post /v1/actions/{actionId}/executions (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("actionId" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn create_action_execution(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/action-completions/{token}", tag = "Actions", operation_id = "complete_action_with_token",
-    summary = "Post /v1/action-completions/{token} (not built yet)",
-        security(("bearerAuth" = [])),
-    params(("token" = String, Path, description = "Path parameter")),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn complete_action_with_token(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
     get, path = "/v1/pricing", tag = "Pricing", operation_id = "get_pricing",
     summary = "Get /v1/pricing (not built yet)",
 
@@ -532,36 +323,6 @@ pub async fn discard_site_change(_principal: crate::auth::Principal) -> crate::R
 pub async fn create_site_change_pull_request(
     _principal: crate::auth::Principal,
 ) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/research", tag = "Research", operation_id = "get_research",
-    summary = "Get /v1/research (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_research(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    get, path = "/v1/research/report", tag = "Research", operation_id = "get_research_report",
-    summary = "Get /v1/research/report (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn get_research_report(_principal: crate::auth::Principal) -> crate::Result<()> {
-    Err(crate::ApiError(openjam_core::Error::NotImplemented))
-}
-
-#[utoipa::path(
-    post, path = "/v1/research-requests", tag = "Research", operation_id = "create_research_request",
-    summary = "Post /v1/research-requests (not built yet)",
-        security(("bearerAuth" = [])),
-    responses((status = 501, body = ApiErrorBody))
-)]
-pub async fn create_research_request(_principal: crate::auth::Principal) -> crate::Result<()> {
     Err(crate::ApiError(openjam_core::Error::NotImplemented))
 }
 
@@ -662,37 +423,15 @@ pub fn stub_routes() -> utoipa_axum::router::OpenApiRouter<crate::state::AppStat
         .routes(utoipa_axum::routes!(add_prompts_bulk))
         .routes(utoipa_axum::routes!(pause_prompt))
         .routes(utoipa_axum::routes!(replace_prompt))
-        .routes(utoipa_axum::routes!(list_opportunities))
-        .routes(utoipa_axum::routes!(get_opportunity))
-        .routes(utoipa_axum::routes!(dismiss_opportunity))
-        .routes(utoipa_axum::routes!(restore_opportunity))
-        .routes(utoipa_axum::routes!(request_opportunity_plan))
-        .routes(utoipa_axum::routes!(get_opportunity_brief))
-        .routes(utoipa_axum::routes!(claim_opportunity))
-        .routes(utoipa_axum::routes!(release_opportunity_claim))
-        .routes(utoipa_axum::routes!(report_opportunity_agent_failure))
         .routes(utoipa_axum::routes!(create_plan_batch))
         .routes(utoipa_axum::routes!(create_visibility_run))
         .routes(utoipa_axum::routes!(list_visibility_runs))
         .routes(utoipa_axum::routes!(get_visibility_run))
         .routes(utoipa_axum::routes!(get_credits))
-        .routes(utoipa_axum::routes!(list_actions))
-        .routes(utoipa_axum::routes!(get_action))
-        .routes(utoipa_axum::routes!(complete_action))
-        .routes(utoipa_axum::routes!(start_action))
-        .routes(utoipa_axum::routes!(report_action_sent))
-        .routes(utoipa_axum::routes!(dismiss_action))
-        .routes(utoipa_axum::routes!(restore_action))
-        .routes(utoipa_axum::routes!(check_action_again))
-        .routes(utoipa_axum::routes!(create_action_execution))
-        .routes(utoipa_axum::routes!(complete_action_with_token))
         .routes(utoipa_axum::routes!(get_pricing))
         .routes(utoipa_axum::routes!(get_site_change))
         .routes(utoipa_axum::routes!(discard_site_change))
         .routes(utoipa_axum::routes!(create_site_change_pull_request))
-        .routes(utoipa_axum::routes!(get_research))
-        .routes(utoipa_axum::routes!(get_research_report))
-        .routes(utoipa_axum::routes!(create_research_request))
         .routes(utoipa_axum::routes!(get_project))
         .routes(utoipa_axum::routes!(update_brand_competitor))
         .routes(utoipa_axum::routes!(remove_brand_competitor))

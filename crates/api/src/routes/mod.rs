@@ -4,8 +4,8 @@ pub mod projects;
 pub mod stubs;
 
 use crate::{
-    analytics, answers, connect, content, notifications, publishing, state::AppState, stream,
-    webhooks,
+    actions, analytics, answers, connect, content, notifications, opportunities, publishing,
+    research, state::AppState, stream, webhooks,
 };
 use axum::Router;
 use utoipa::openapi::{
@@ -78,6 +78,35 @@ pub fn build() -> (Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(utoipa_axum::routes!(
             publishing::configure_destination_github
         ))
+        // M4 research and actions.
+        .routes(utoipa_axum::routes!(research::get_research))
+        .routes(utoipa_axum::routes!(research::get_research_report))
+        .routes(utoipa_axum::routes!(research::create_research_request))
+        .routes(utoipa_axum::routes!(opportunities::list_opportunities))
+        .routes(utoipa_axum::routes!(opportunities::get_opportunity))
+        .routes(utoipa_axum::routes!(opportunities::dismiss_opportunity))
+        .routes(utoipa_axum::routes!(opportunities::restore_opportunity))
+        .routes(utoipa_axum::routes!(
+            opportunities::request_opportunity_plan
+        ))
+        .routes(utoipa_axum::routes!(opportunities::get_opportunity_brief))
+        .routes(utoipa_axum::routes!(opportunities::claim_opportunity))
+        .routes(utoipa_axum::routes!(
+            opportunities::release_opportunity_claim
+        ))
+        .routes(utoipa_axum::routes!(
+            opportunities::report_opportunity_agent_failure
+        ))
+        .routes(utoipa_axum::routes!(actions::list_actions))
+        .routes(utoipa_axum::routes!(actions::get_action))
+        .routes(utoipa_axum::routes!(actions::start_action))
+        .routes(utoipa_axum::routes!(actions::report_action_sent))
+        .routes(utoipa_axum::routes!(actions::dismiss_action))
+        .routes(utoipa_axum::routes!(actions::restore_action))
+        .routes(utoipa_axum::routes!(actions::complete_action))
+        .routes(utoipa_axum::routes!(actions::complete_action_with_token))
+        .routes(utoipa_axum::routes!(actions::check_action_again))
+        .routes(utoipa_axum::routes!(actions::create_action_execution))
         .merge(stubs::stub_routes())
         .split_for_parts();
 

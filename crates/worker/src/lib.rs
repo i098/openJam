@@ -2,17 +2,23 @@
 
 mod content_update;
 mod judge;
+pub mod pages;
 mod publish;
+mod research;
 mod scan;
 
 use chrono::{DateTime, Duration, Utc};
 use openjam_core::{
+    actions::QUEUE_CHECK,
     jobs::{self, FailOutcome, Job},
+    research::QUEUE_RESEARCH,
     tracking::{self, QUEUE_JUDGE, QUEUE_SCAN},
 };
 use openjam_engines::Router;
 use openjam_publish::{delivery::QUEUE as QUEUE_PUBLISH, store::QUEUE_UPDATE};
+use pages::PageReader;
 use sqlx::PgPool;
+use std::sync::Arc;
 use uuid::Uuid;
 
 pub const MAINTENANCE: &str = "maintenance";
@@ -21,6 +27,8 @@ pub const WORKER_QUEUES: &[&str] = &[
     QUEUE_JUDGE,
     QUEUE_PUBLISH,
     QUEUE_UPDATE,
+    QUEUE_RESEARCH,
+    QUEUE_CHECK,
     MAINTENANCE,
 ];
 /// A job still `running` after this long lost its worker. Longer than the 120 s provider limit.
@@ -34,6 +42,8 @@ pub struct Services {
     pub router: Router,
     /// Scans a workspace may start per UTC day. `None`: no limit.
     pub scan_cap_per_day: Option<u32>,
+    /// How research and action checks read web pages.
+    pub pages: Arc<dyn PageReader>,
 }
 
 /// What a handler asks the loop to do with its job.
@@ -61,6 +71,8 @@ async fn handle(svc: &Services, job: &Job) -> Result<Outcome, String> {
         QUEUE_JUDGE => judge::handle(svc, job).await,
         QUEUE_PUBLISH => publish::handle(svc, job).await,
         QUEUE_UPDATE => content_update::handle(svc, job).await,
+        QUEUE_RESEARCH => research::handle_research(svc, job).await,
+        QUEUE_CHECK => research::handle_check(svc, job).await,
         MAINTENANCE => {
             let freed = jobs::requeue_stale(&svc.pool, STALE_SECS)
                 .await
@@ -103,6 +115,11 @@ pub async fn run_one(svc: &Services, worker_id: &str) -> Result<bool, String> {
         },
     }
     Ok(true)
+}
+
+/// Start the first research run of each project that has scanned. Returns the run ids.
+pub async fn research_tick(svc: &Services) -> Result<Vec<Uuid>, String> {
+    research::tick(svc).await
 }
 
 /// Start the scans that are due at `now`. Returns the run ids started.

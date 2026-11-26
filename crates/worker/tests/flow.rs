@@ -10,7 +10,7 @@ use openjam_engines::{
     EngineError, EngineRequest, Provider, Router, Secret, pool::Pool, router::JudgeModels,
     secrets::Keyring,
 };
-use openjam_worker::{Services, run_one, schedule_tick};
+use openjam_worker::{Services, pages::HttpPages, run_one, schedule_tick};
 use sqlx::{PgPool, Row};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -149,6 +149,7 @@ async fn world(pool: PgPool, mock: Mock, accounts: &[&str]) -> World {
             pool: pool.clone(),
             router,
             scan_cap_per_day: None,
+            pages: Arc::new(HttpPages::new(false)),
         },
         project,
         workspace,

@@ -10,32 +10,97 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/action-completions/{token} (not built yet)
+      summary: Report an action done with its token
+      description: 'For the agent that did the work: the token in the action''s prompt reports that one action done. No API key needed.'
       operationId: complete_action_with_token
       parameters:
       - name: token
         in: path
-        description: Path parameter
+        description: 'The token from the action''s prompt: `gac_` and 32 hex digits'
         required: true
         schema:
           type: string
+          pattern: ^gac_[0-9a-f]{32}$
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCompletion'
+        required: true
       responses:
-        '501':
+        '200':
+          description: Reported
+        '400':
           description: ''
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorBody'
-      security:
-      - bearerAuth: []
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
   /v1/actions:
     get:
       tags:
       - Actions
-      summary: Get /v1/actions (not built yet)
+      summary: List the Plan
+      description: 'The project''s Plan, highest priority first, with the count in each status. Superseded actions are left out unless `includeSuperseded=true` or `status` names them. Paged: `limit` (default 100, at most 100) and `cursor`; `countsByStatus` covers every page.'
       operationId: list_actions
+      parameters:
+      - name: status
+        in: query
+        description: One or more statuses, comma separated.
+        required: false
+        schema:
+          type: string
+      - name: kind
+        in: query
+        description: One or more kinds, comma separated.
+        required: false
+        schema:
+          type: string
+      - name: includeSuperseded
+        in: query
+        description: Also list actions a later research run no longer proposes.
+        required: false
+        schema:
+          type: boolean
+      - name: limit
+        in: query
+        description: Items per page, 1 to 100. The default is 100.
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: '`pageInfo.nextCursor` of the page before.'
+        required: false
+        schema:
+          type: string
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Actions'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -47,17 +112,31 @@ paths:
     get:
       tags:
       - Actions
-      summary: Get /v1/actions/{actionId} (not built yet)
+      summary: Get an action
+      description: 'Everything to do one action: evidence (`details`, `sources`), prompts to move (`questions`), target page, history, latest check, and `agentPrompt` (instructions for your agent, ending with how to report the work).'
       operationId: get_action
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionDetail'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -69,17 +148,49 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/actions/{actionId}/checks (not built yet)
+      summary: Check an action again
+      description: 'Re-verify a `done` or `unverified` action: a new done claim (at `url`, else the last claim''s page) that Jam checks again. 409 when the action is not `done` or `unverified`.'
       operationId: check_action_again
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCheck'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTransitionResult'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -91,17 +202,49 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/actions/{actionId}/completion (not built yet)
+      summary: Report an action done
+      description: Report an action done, optionally with the URL of the finished work. Jam then checks the page once (status `done`, then `verified` or `unverified`). 409 for a dismissed or superseded action.
       operationId: complete_action
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCompletion'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTransitionResult'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -113,17 +256,37 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/actions/{actionId}/dismissal (not built yet)
+      summary: Dismiss an action
+      description: Take an open action off the Plan (status `dismissed`). `DELETE` restores it. Safe to repeat.
       operationId: dismiss_action
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTransitionResult'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -134,17 +297,37 @@ paths:
     delete:
       tags:
       - Actions
-      summary: Delete /v1/actions/{actionId}/dismissal (not built yet)
+      summary: Restore a dismissed action
+      description: 'Put a dismissed action back on the Plan, as it was before the dismissal. Safe to repeat on a restored action only through `409`: only a dismissed action can be restored.'
       operationId: restore_action
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTransitionResult'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -156,17 +339,49 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/actions/{actionId}/executions (not built yet)
+      summary: Have Jam do an action
+      description: 'Ask Jam to do the work. An action linked to an article is drafted in the background. Other work, and the `agent` mode, is not available in this build: 422 names the reason, and `agentPrompt` tells your agent what to do. 409 when the article is held, dismissed or written.'
       operationId: create_action_execution
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionExecutionRequest'
+        required: true
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionExecution'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '422':
           description: ''
           content:
             application/json:
@@ -178,17 +393,43 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/actions/{actionId}/sent (not built yet)
+      summary: Report an outreach pitch sent
+      description: 'Outreach only: the pitch went out; the third party has not acted yet (status `sent`). 422 for any other kind. Safe to repeat.'
       operationId: report_action_sent
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTransitionResult'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '422':
           description: ''
           content:
             application/json:
@@ -200,17 +441,37 @@ paths:
     post:
       tags:
       - Actions
-      summary: Post /v1/actions/{actionId}/start (not built yet)
+      summary: Start an action
+      description: Record that work on the action has begun (status `in_progress`). To take a started action off the Plan, dismiss it. Safe to repeat.
       operationId: start_action
       parameters:
       - name: actionId
         in: path
-        description: Path parameter
+        description: The action id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTransitionResult'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -1975,10 +2236,49 @@ paths:
     get:
       tags:
       - Opportunities
-      summary: Get /v1/opportunities (not built yet)
+      summary: List opportunities
+      description: The project's article opportunities and their states, highest score first. Opportunities are the article pipeline behind the Plan's `new_page` actions; work from actions, and read an opportunity to write its article from the brief.
       operationId: list_opportunities
+      parameters:
+      - name: state
+        in: query
+        description: One or more states, comma separated.
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Items per page, 1 to 100. The default is 100.
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: '`pageInfo.nextCursor` of the page before.'
+        required: false
+        schema:
+          type: string
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Opportunities'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1990,17 +2290,31 @@ paths:
     get:
       tags:
       - Opportunities
-      summary: Get /v1/opportunities/{opportunityId} (not built yet)
+      summary: Get an opportunity
+      description: One opportunity with its state and the research it came from.
       operationId: get_opportunity
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpportunityDetail'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2012,17 +2326,45 @@ paths:
     post:
       tags:
       - Opportunities
-      summary: Post /v1/opportunities/{opportunityId}/agent-failures (not built yet)
+      summary: Report that the agent failed
+      description: Release the agent claim and record `reason` as the failure users see (`creationFailure.code` `agent_failed`). 409 when the opportunity already has content.
       operationId: report_opportunity_agent_failure
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentFailure'
+        required: true
       responses:
-        '501':
+        '204':
+          description: ''
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -2034,17 +2376,31 @@ paths:
     get:
       tags:
       - Opportunities
-      summary: Get /v1/opportunities/{opportunityId}/brief (not built yet)
+      summary: Get the brief of an opportunity
+      description: 'What an agent needs to write the article: the opportunity, its prompts, brand voice, sources, the article plan from research, and the exact `POST /v1/content` body.'
       operationId: get_opportunity_brief
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpportunityBrief'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2056,17 +2412,43 @@ paths:
     post:
       tags:
       - Opportunities
-      summary: Post /v1/opportunities/{opportunityId}/claims (not built yet)
+      summary: Claim an opportunity for an agent
+      description: 'Hold the opportunity while your agent writes it: it becomes `claimed`, and neither Jam nor another agent writes it. Released by `POST /v1/content`, `DELETE .../claims/current`, `POST .../agent-failures`, or after 24 hours. 409 when it is already held, planned or dismissed.'
       operationId: claim_opportunity
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Claim'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimOpened'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -2078,17 +2460,27 @@ paths:
     delete:
       tags:
       - Opportunities
-      summary: Delete /v1/opportunities/{opportunityId}/claims/current (not built yet)
+      summary: Release an agent claim
+      description: Give the opportunity back without a result; it is open again. 404 when no agent claim is open.
       operationId: release_opportunity_claim
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: ''
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2100,17 +2492,39 @@ paths:
     post:
       tags:
       - Opportunities
-      summary: Post /v1/opportunities/{opportunityId}/dismissal (not built yet)
+      summary: Dismiss an opportunity
+      description: Dismiss an opportunity that has no content. Repeating it changes nothing. 422 when the opportunity has content (`has_content`, or `content_discarded` when that content is already discarded).
       operationId: dismiss_opportunity
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: ''
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '422':
           description: ''
           content:
             application/json:
@@ -2121,17 +2535,33 @@ paths:
     delete:
       tags:
       - Opportunities
-      summary: Delete /v1/opportunities/{opportunityId}/dismissal (not built yet)
+      summary: Restore an opportunity
+      description: Undo a dismissal on an opportunity that has no content. Repeating it changes nothing. 422 when the opportunity has content.
       operationId: restore_opportunity
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: ''
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '422':
           description: ''
           content:
             application/json:
@@ -2143,17 +2573,37 @@ paths:
     post:
       tags:
       - Opportunities
-      summary: Post /v1/opportunities/{opportunityId}/plan-requests (not built yet)
+      summary: Have Jam write an opportunity
+      description: Jam researches, writes and reviews content for the opportunity (Plan, or Retry after a failure). Runs in the background; the content appears under /v1/content. 409 when the opportunity is held, dismissed or already written.
       operationId: request_opportunity_plan
       parameters:
       - name: opportunityId
         in: path
-        description: Path parameter
+        description: The opportunity id
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accepted'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -2619,10 +3069,23 @@ paths:
     get:
       tags:
       - Research
-      summary: Get /v1/research (not built yet)
+      summary: Get the research state
+      description: 'Research state: running or not, the latest run''s timing and end, the run in flight, and whether Research again is accepted.'
       operationId: get_research
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchState'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2634,10 +3097,29 @@ paths:
     post:
       tags:
       - Research
-      summary: Post /v1/research-requests (not built yet)
+      summary: Research again
+      description: Ask Jam to research the active project again and rewrite the Plan. Takes about ten minutes; poll `GET /v1/research`. 409 while a run is in flight or the first scan has not finished.
       operationId: create_research_request
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchRequest'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -2649,10 +3131,23 @@ paths:
     get:
       tags:
       - Research
-      summary: Get /v1/research/report (not built yet)
+      summary: Get the latest research report
+      description: 'The latest successful research: answers read, and each proposed action, best first, with its why, evidence and target prompts. `report` is null before any run succeeded.'
       operationId: get_research_report
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchReportResult'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2951,7 +3446,6 @@ components:
       properties:
         status:
           type: string
-          description: Always `accepted`.
     AcceptedDelivery:
       type: object
       required:
@@ -2965,6 +3459,206 @@ components:
         status:
           type: string
           description: Always `accepted`.
+    Action:
+      type: object
+      required:
+      - id
+      - kind
+      - problem
+      - title
+      - why
+      - impact
+      - rank
+      - status
+      - lastSeenAt
+      - executableByJam
+      - nextStep
+      properties:
+        contentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The content written for that opportunity, once there is any.
+        executableByJam:
+          type: boolean
+          description: Whether `POST /v1/actions/{id}/executions` would have Jam do this now.
+        id:
+          type: string
+          format: uuid
+        impact:
+          type: string
+          description: '`high`, `medium` or `low`.'
+        kind:
+          type: string
+          description: '`page_edit`, `new_page`, `outreach`, `technical` or `community`.'
+        lastSeenAt:
+          type: string
+          format: date-time
+        nextStep:
+          type: string
+          description: What to do with the action next.
+        notExecutableReason:
+          type:
+          - string
+          - 'null'
+          description: |-
+            Why not, when `executable_by_jam` is false: `closed`, `already_drafted`, `not_jam_work`,
+            `needs_github`, `no_page`.
+        opportunityId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The article opportunity behind the action, once Jam has one.
+        problem:
+          type: string
+          description: The gap the action closes.
+        rank:
+          type: integer
+          format: int32
+          description: Priority within the Plan; 1 is first.
+        status:
+          type: string
+        targetUrl:
+          type:
+          - string
+          - 'null'
+        title:
+          type: string
+        why:
+          type: string
+    ActionCheck:
+      type: object
+      properties:
+        url:
+          type:
+          - string
+          - 'null'
+          description: The page to check, when it moved. Defaults to the last claim.
+    ActionCompletion:
+      type: object
+      properties:
+        note:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+          description: Where the finished work lives.
+    ActionDetail:
+      allOf:
+      - $ref: '#/components/schemas/Action'
+      - type: object
+        required:
+        - kindLabel
+        - source
+        - details
+        - sources
+        - questions
+        - history
+        - agentPrompt
+        - firstSeenAt
+        properties:
+          agentPrompt:
+            type: string
+            description: Instructions for your agent, ending with how to report the work.
+          change:
+            description: Jam's prepared code change. Always null in this build.
+          check:
+            description: 'The latest check of a done claim: `{passed, evidence, url, at}`.'
+          details:
+            type: array
+            items:
+              type: string
+            description: The evidence and specifics research found.
+          firstSeenAt:
+            type: string
+            format: date-time
+          history:
+            type: array
+            items:
+              $ref: '#/components/schemas/HistoryEvent'
+            description: Everything that happened to the action, oldest first.
+          kindLabel:
+            type: string
+          questions:
+            description: 'The tracked prompts this action should move: `{promptId, text}`.'
+          source:
+            type: string
+            description: '`research`, `planner` or `user`.'
+          sources:
+            type: array
+            items:
+              type: string
+            description: Pages research read for this action.
+    ActionExecution:
+      type: object
+      required:
+      - status
+      - work
+      properties:
+        changeId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        chatUrl:
+          type:
+          - string
+          - 'null'
+        opportunityId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        runId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          type: string
+        work:
+          type: string
+          description: '`draft`: Jam is writing the article; follow `opportunity_id`.'
+    ActionExecutionRequest:
+      type: object
+      properties:
+        mode:
+          type:
+          - string
+          - 'null'
+          description: '`one_shot` (default): Jam drafts the work. `agent` is not available in this build.'
+    ActionTransitionResult:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+    Actions:
+      type: object
+      required:
+      - actions
+      - countsByStatus
+      - pageInfo
+      properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+        countsByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          propertyNames:
+            type: string
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
     AddDestination:
       type: object
       required:
@@ -3008,6 +3702,14 @@ components:
         revisionId:
           type: string
           format: uuid
+    AgentFailure:
+      type: object
+      required:
+      - reason
+      properties:
+        reason:
+          type: string
+          description: Why the article could not be written, in words a person can read.
     AnalyticsBrand:
       type: object
       required:
@@ -3433,6 +4135,60 @@ components:
         title:
           type: string
           description: The article headline.
+    AutomaticTopUp:
+      type: object
+      required:
+      - eligibleNow
+      properties:
+        eligibleNow:
+          type: boolean
+        notBefore:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    BrandVoice:
+      type: object
+      required:
+      - name
+      - excludedTopics
+      properties:
+        audience:
+          type:
+          - string
+          - 'null'
+        contentStyle:
+          type:
+          - string
+          - 'null'
+        excludedTopics:
+          type: array
+          items:
+            type: string
+        name:
+          type: string
+        positioning:
+          type:
+          - string
+          - 'null'
+        productDescription:
+          type:
+          - string
+          - 'null'
+        tone:
+          type:
+          - string
+          - 'null'
+    BriefResearch:
+      type: object
+      required:
+      - evidenceBundleId
+      - sources
+      properties:
+        evidenceBundleId:
+          type: string
+        sources:
+          description: The pages research read and what it recorded from each.
     ChangeFeedItem:
       type: object
       required:
@@ -3452,6 +4208,37 @@ components:
         value:
           type: number
           format: double
+    Claim:
+      type: object
+      description: Send `{}`.
+    ClaimOpened:
+      type: object
+      required:
+      - claimId
+      - expiresAt
+      properties:
+        claimId:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
+    ClaimView:
+      type: object
+      required:
+      - kind
+      - claimedAt
+      properties:
+        claimedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        kind:
+          type: string
     ConfigureGithubDestination:
       type: object
       required:
@@ -3858,6 +4645,29 @@ components:
         instruction:
           type: string
           description: What to change, at most 4000 characters.
+    EvidencePrompt:
+      type: object
+      required:
+      - promptId
+      - evidenceKind
+      properties:
+        evidenceKind:
+          type: string
+          description: '`absent` (the brand is in no answer) or `weak`.'
+        platform:
+          type:
+          - string
+          - 'null'
+        promptId:
+          type: string
+        promptRunId:
+          type:
+          - string
+          - 'null'
+        promptVersionId:
+          type:
+          - string
+          - 'null'
     Finding:
       type: object
       required:
@@ -3907,6 +4717,50 @@ components:
           type: array
           items:
             type: string
+    HistoryEvent:
+      type: object
+      required:
+      - id
+      - type
+      - actor
+      - at
+      properties:
+        actor:
+          type: string
+        at:
+          type: string
+          format: date-time
+        evidence:
+          type:
+          - string
+          - 'null'
+        id:
+          type: string
+        note:
+          type:
+          - string
+          - 'null'
+        type:
+          type: string
+        url:
+          type:
+          - string
+          - 'null'
+    InFlightRun:
+      type: object
+      required:
+      - requestId
+      - kind
+      - requestedAt
+      properties:
+        kind:
+          type: string
+        requestId:
+          type: string
+          format: uuid
+        requestedAt:
+          type: string
+          format: date-time
     IssueApiKey:
       type: object
       required:
@@ -3930,6 +4784,57 @@ components:
           description: Shown once. Store it now; the server keeps only its hash.
         keyPrefix:
           type: string
+    Language:
+      type: object
+      required:
+      - code
+      - name
+      - nativeName
+      properties:
+        code:
+          type: string
+        country:
+          type:
+          - string
+          - 'null'
+        name:
+          type: string
+        nativeName:
+          type: string
+    LatestRun:
+      type: object
+      required:
+      - requestId
+      - kind
+      - requestedAt
+      - outcome
+      properties:
+        failureMessage:
+          type:
+          - string
+          - 'null'
+        finishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        kind:
+          type: string
+          description: '`first_scan`, `backfill`, `manual` or `top_up`.'
+        outcome:
+          type: string
+          description: '`success` or `failed`.'
+        requestId:
+          type: string
+          format: uuid
+        requestedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
     LeaderboardEntry:
       type: object
       required:
@@ -3971,6 +4876,27 @@ components:
           - number
           - 'null'
           format: double
+    ManualResearch:
+      type: object
+      required:
+      - eligible
+      - free
+      - credits
+      properties:
+        blockedBy:
+          type:
+          - string
+          - 'null'
+          description: '`in_progress` or `first_scan_running`; null when a request would be accepted.'
+        credits:
+          type: integer
+          format: int32
+          description: Always 0.
+        eligible:
+          type: boolean
+        free:
+          type: boolean
+          description: 'Always true: openJam has no credits.'
     MarkPublished:
       type: object
       required:
@@ -4279,6 +5205,159 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NotificationRule'
+    Opportunities:
+      type: object
+      required:
+      - opportunities
+      - pageInfo
+      properties:
+        opportunities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Opportunity'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    Opportunity:
+      type: object
+      required:
+      - id
+      - projectId
+      - kind
+      - title
+      - rationale
+      - topic
+      - persona
+      - intent
+      - score
+      - createdAt
+      - state
+      properties:
+        changeKind:
+          type:
+          - string
+          - 'null'
+          description: 'For an update: what to change on the page.'
+        claim:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/ClaimView'
+            description: 'Who holds it now: a Jam run (`pipeline`) or an agent (`agent`).'
+        contentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The content created from it, if any.
+        createdAt:
+          type: string
+          format: date-time
+        creationFailure:
+          description: 'The last failure to create content from it: `{code, message, at}`.'
+        dismissedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        intent:
+          type: string
+        kind:
+          type: string
+          description: '`create_page` or `update_page`.'
+        persona:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        rationale:
+          type: string
+        score:
+          type: number
+          format: double
+        state:
+          type: string
+          description: '`open`, `planned`, `writing`, `claimed`, `creation_failed` or `dismissed`.'
+        targetPageId:
+          type:
+          - string
+          - 'null'
+          description: 'For an update: the page it changes.'
+        title:
+          type: string
+        topic:
+          type: string
+    OpportunityBrief:
+      type: object
+      required:
+      - opportunityId
+      - kind
+      - title
+      - rationale
+      - topic
+      - persona
+      - intent
+      - targetPrompts
+      - voice
+      - research
+      - creditsCharged
+      - submit
+      properties:
+        articlePlan:
+          description: '`null` for a page update, or when no plan was stored.'
+        creditsCharged:
+          type: integer
+          format: int32
+          description: 'Always 0: the plan comes with the research.'
+        delivery:
+          description: The destination of the article. `null` until the project has one.
+        intent:
+          type: string
+        kind:
+          type: string
+        opportunityId:
+          type: string
+          format: uuid
+        persona:
+          type: string
+        planUnavailable:
+          type:
+          - string
+          - 'null'
+        rationale:
+          type: string
+        research:
+          $ref: '#/components/schemas/BriefResearch'
+        submit:
+          $ref: '#/components/schemas/Submit'
+        targetPrompts:
+          type: array
+          items:
+            type: string
+          description: The questions users ask that this article should answer.
+        title:
+          type: string
+        topic:
+          type: string
+        voice:
+          $ref: '#/components/schemas/Voice'
+    OpportunityDetail:
+      allOf:
+      - $ref: '#/components/schemas/Opportunity'
+      - type: object
+        required:
+        - prompts
+        - demandQueries
+        properties:
+          demandQueries:
+            type: array
+            items: {}
+            description: 'Always empty: openJam has no demand queries.'
+          prompts:
+            type: array
+            items:
+              $ref: '#/components/schemas/EvidencePrompt'
     PageInfo:
       type: object
       required:
@@ -4533,6 +5612,142 @@ components:
           type: string
           format: uuid
           description: The revision being replaced, normally the current one.
+    ReportAction:
+      type: object
+      required:
+      - id
+      - kind
+      - problem
+      - status
+      - title
+      - why
+      - details
+      - impact
+      - rank
+      - sources
+      - questions
+      properties:
+        details:
+          type: array
+          items:
+            type: string
+        id:
+          type: string
+          format: uuid
+        impact:
+          type: string
+        kind:
+          type: string
+        problem:
+          type: string
+        questions: {}
+        rank:
+          type: integer
+          format: int32
+        sources:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        targetUrl:
+          type:
+          - string
+          - 'null'
+        title:
+          type: string
+        why:
+          type: string
+    ResearchReport:
+      type: object
+      required:
+      - runId
+      - finishedAt
+      - actions
+      properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportAction'
+        actionsProposed:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          description: Proposals before two of the same work were merged.
+        answersRead:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        finishedAt:
+          type: string
+          format: date-time
+        runId:
+          type: string
+          format: uuid
+    ResearchReportResult:
+      type: object
+      properties:
+        report:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/ResearchReport'
+            description: '`null` before any run succeeded.'
+    ResearchRequest:
+      type: object
+      required:
+      - status
+      - requestId
+      - charged
+      - credits
+      properties:
+        charged:
+          type: boolean
+        credits:
+          type: integer
+          format: int32
+        requestId:
+          type: string
+          format: uuid
+        status:
+          type: string
+    ResearchState:
+      type: object
+      required:
+      - state
+      - manual
+      - automaticTopUp
+      properties:
+        automaticTopUp:
+          $ref: '#/components/schemas/AutomaticTopUp'
+          description: Jam's own re-run. openJam starts only the first run by itself.
+        finishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        inFlight:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/InFlightRun'
+            description: The run in flight, if any. A run takes about ten minutes.
+        latest:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/LatestRun'
+            description: The last run that ended.
+        manual:
+          $ref: '#/components/schemas/ManualResearch'
+          description: Research again, by hand.
+        startedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        state:
+          type: string
+          description: '`never`, `running`, `done` or `failed`.'
     Revision:
       allOf:
       - $ref: '#/components/schemas/RevisionSummary'
@@ -4600,6 +5815,18 @@ components:
           - string
           - 'null'
           description: Shown on the approval page, for example `Claude Code`.
+    Submit:
+      type: object
+      required:
+      - method
+      - path
+      - body
+      properties:
+        body: {}
+        method:
+          type: string
+        path:
+          type: string
     TopicRanking:
       type: object
       required:
@@ -4735,6 +5962,16 @@ components:
           type: integer
           format: int64
           description: Scans started in the current UTC day.
+    Voice:
+      type: object
+      required:
+      - brand
+      - language
+      properties:
+        brand:
+          $ref: '#/components/schemas/BrandVoice'
+        language:
+          $ref: '#/components/schemas/Language'
     Webhook:
       type: object
       required:

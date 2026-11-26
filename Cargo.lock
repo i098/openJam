@@ -1360,11 +1360,13 @@ dependencies = [
  "openjam-core",
  "openjam-engines",
  "openjam-publish",
+ "reqwest",
  "serde_json",
  "sqlx",
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "url",
  "uuid",
 ]
 
