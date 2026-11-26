@@ -17,6 +17,9 @@ pub enum Error {
     NotFound(&'static str),
     #[error("{0}")]
     Conflict(String),
+    /// The request is well formed but this build cannot do it.
+    #[error("{0}")]
+    Unprocessable(String),
     #[error(
         "scan cap of {cap} a day reached; raise OPENJAM_SCAN_CAP_PER_DAY or wait for 00:00 UTC"
     )]
@@ -41,6 +44,7 @@ impl Error {
             Self::Forbidden | Self::ForbiddenForApiKey => 403,
             Self::NotFound(_) => 404,
             Self::Conflict(_) => 409,
+            Self::Unprocessable(_) => 422,
             Self::CapReached { .. } => 429,
             Self::RateLimited => 429,
             Self::NotImplemented => 501,
@@ -57,6 +61,7 @@ impl Error {
             Self::ForbiddenForApiKey => "forbidden_for_api_key",
             Self::NotFound(_) => "not_found",
             Self::Conflict(_) => "conflict",
+            Self::Unprocessable(_) => "unprocessable",
             Self::CapReached { .. } => "cap_reached",
             Self::RateLimited => "rate_limited",
             Self::NotImplemented => "not_implemented",

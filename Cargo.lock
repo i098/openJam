@@ -1312,11 +1312,13 @@ dependencies = [
  "chrono",
  "openjam-core",
  "openjam-engines",
+ "reqwest",
  "serde_json",
  "sqlx",
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "url",
  "uuid",
 ]
 

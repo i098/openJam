@@ -7,7 +7,7 @@ use openjam_core::tracking::{self, NewPrompt};
 use openjam_engines::{
     Provider, Router, Secret, key::KeyEngine, pool::Pool, router::JudgeModels, secrets::Keyring,
 };
-use openjam_worker::{Services, run_one, schedule_tick};
+use openjam_worker::{Services, pages::HttpPages, run_one, schedule_tick};
 use sqlx::{PgPool, Row};
 use std::sync::Arc;
 
@@ -63,6 +63,7 @@ async fn one_live_scan_with_a_real_openai_key(pool: PgPool) {
             JudgeModels::from_env(),
         ),
         scan_cap_per_day: None,
+        pages: Arc::new(HttpPages::from_env()),
     };
 
     let runs = schedule_tick(&svc, Utc::now()).await.unwrap();

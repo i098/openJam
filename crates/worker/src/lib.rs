@@ -1,19 +1,31 @@
 //! The job worker: claims Postgres jobs, runs scan calls and the judge, and starts scans on schedule.
 
 mod judge;
+pub mod pages;
+mod research;
 mod scan;
 
 use chrono::{DateTime, Duration, Utc};
 use openjam_core::{
+    actions::QUEUE_CHECK,
     jobs::{self, FailOutcome, Job},
+    research::QUEUE_RESEARCH,
     tracking::{self, QUEUE_JUDGE, QUEUE_SCAN},
 };
 use openjam_engines::Router;
+use pages::PageReader;
 use sqlx::PgPool;
+use std::sync::Arc;
 use uuid::Uuid;
 
 pub const MAINTENANCE: &str = "maintenance";
-pub const WORKER_QUEUES: &[&str] = &[QUEUE_SCAN, QUEUE_JUDGE, MAINTENANCE];
+pub const WORKER_QUEUES: &[&str] = &[
+    QUEUE_SCAN,
+    QUEUE_JUDGE,
+    QUEUE_RESEARCH,
+    QUEUE_CHECK,
+    MAINTENANCE,
+];
 /// A job still `running` after this long lost its worker. Longer than the 120 s provider limit.
 pub const STALE_SECS: i64 = 300;
 /// Projects started in one scheduler tick.
@@ -25,6 +37,8 @@ pub struct Services {
     pub router: Router,
     /// Scans a workspace may start per UTC day. `None`: no limit.
     pub scan_cap_per_day: Option<u32>,
+    /// How research and action checks read web pages.
+    pub pages: Arc<dyn PageReader>,
 }
 
 /// What a handler asks the loop to do with its job.
@@ -50,6 +64,8 @@ async fn handle(svc: &Services, job: &Job) -> Result<Outcome, String> {
     match job.queue.as_str() {
         QUEUE_SCAN => scan::handle(svc, job).await,
         QUEUE_JUDGE => judge::handle(svc, job).await,
+        QUEUE_RESEARCH => research::handle_research(svc, job).await,
+        QUEUE_CHECK => research::handle_check(svc, job).await,
         MAINTENANCE => {
             let freed = jobs::requeue_stale(&svc.pool, STALE_SECS)
                 .await
@@ -92,6 +108,11 @@ pub async fn run_one(svc: &Services, worker_id: &str) -> Result<bool, String> {
         },
     }
     Ok(true)
+}
+
+/// Start the first research run of each project that has scanned. Returns the run ids.
+pub async fn research_tick(svc: &Services) -> Result<Vec<Uuid>, String> {
+    research::tick(svc).await
 }
 
 /// Start the scans that are due at `now`. Returns the run ids started.
