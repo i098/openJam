@@ -1,0 +1,2178 @@
+openapi: 3.1.0
+info:
+  title: openJam API
+  description: The `/v1` contract. Operations marked "not built yet" answer 501 until their slice lands.
+  version: 0.1.0
+servers:
+- url: /
+paths:
+  /v1/action-completions/{token}:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/action-completions/{token} (not built yet)
+      operationId: complete_action_with_token
+      parameters:
+      - name: token
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions:
+    get:
+      tags:
+      - Actions
+      summary: Get /v1/actions (not built yet)
+      operationId: list_actions
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}:
+    get:
+      tags:
+      - Actions
+      summary: Get /v1/actions/{actionId} (not built yet)
+      operationId: get_action
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}/checks:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/actions/{actionId}/checks (not built yet)
+      operationId: check_action_again
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}/completion:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/actions/{actionId}/completion (not built yet)
+      operationId: complete_action
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}/dismissal:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/actions/{actionId}/dismissal (not built yet)
+      operationId: dismiss_action
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Actions
+      summary: Delete /v1/actions/{actionId}/dismissal (not built yet)
+      operationId: restore_action
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}/executions:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/actions/{actionId}/executions (not built yet)
+      operationId: create_action_execution
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}/sent:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/actions/{actionId}/sent (not built yet)
+      operationId: report_action_sent
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/actions/{actionId}/start:
+    post:
+      tags:
+      - Actions
+      summary: Post /v1/actions/{actionId}/start (not built yet)
+      operationId: start_action
+      parameters:
+      - name: actionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/agent-connect:
+    post:
+      tags:
+      - Agent connect
+      summary: Post /v1/agent-connect (not built yet)
+      operationId: start_agent_connect
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+  /v1/agent-connect/{pollToken}:
+    get:
+      tags:
+      - Agent connect
+      summary: Get /v1/agent-connect/{pollToken} (not built yet)
+      operationId: get_agent_connect
+      parameters:
+      - name: pollToken
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+  /v1/analytics/metrics:
+    get:
+      tags:
+      - Analytics
+      summary: Get /v1/analytics/metrics (not built yet)
+      operationId: list_analytics_metrics
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/analytics/overview:
+    get:
+      tags:
+      - Analytics
+      summary: Get /v1/analytics/overview (not built yet)
+      operationId: get_analytics_overview
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/analytics/prompts:
+    get:
+      tags:
+      - Analytics
+      summary: Get /v1/analytics/prompts (not built yet)
+      operationId: list_prompt_analytics
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/answers:
+    get:
+      tags:
+      - Answers
+      summary: Get /v1/answers (not built yet)
+      operationId: list_answers
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/api-keys:
+    get:
+      tags:
+      - API keys
+      summary: List API keys
+      operationId: list_api_keys
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyList'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - API keys
+      summary: Create an API key
+      operationId: create_api_key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueApiKey'
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuedApiKey'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/api-keys/{keyId}:
+    delete:
+      tags:
+      - API keys
+      summary: Revoke an API key
+      operationId: revoke_api_key
+      parameters:
+      - name: keyId
+        in: path
+        description: The key to revoke
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Revoked
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '403':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/billing:
+    get:
+      tags:
+      - Billing
+      summary: Get /v1/billing (not built yet)
+      operationId: get_billing
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/brand:
+    get:
+      tags:
+      - Brand
+      summary: Get /v1/brand (not built yet)
+      operationId: get_brand
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Brand
+      summary: Patch /v1/brand (not built yet)
+      operationId: update_brand
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/brand/competitors:
+    get:
+      tags:
+      - Brand
+      summary: Get /v1/brand/competitors (not built yet)
+      operationId: list_brand_competitors
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - Brand
+      summary: Put /v1/brand/competitors (not built yet)
+      operationId: pin_competitors
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Brand
+      summary: Post /v1/brand/competitors (not built yet)
+      operationId: add_brand_competitors
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Brand
+      summary: Delete /v1/brand/competitors (not built yet)
+      operationId: unpin_competitors
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/brand/competitors/{name}:
+    delete:
+      tags:
+      - Brand
+      summary: Delete /v1/brand/competitors/{name} (not built yet)
+      operationId: remove_brand_competitor
+      parameters:
+      - name: name
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Brand
+      summary: Patch /v1/brand/competitors/{name} (not built yet)
+      operationId: update_brand_competitor
+      parameters:
+      - name: name
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/brand/recalibrations:
+    post:
+      tags:
+      - Brand
+      summary: Post /v1/brand/recalibrations (not built yet)
+      operationId: recalibrate_brand
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content:
+    get:
+      tags:
+      - Content
+      summary: Get /v1/content (not built yet)
+      operationId: list_content
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Content
+      summary: Post /v1/content (not built yet)
+      operationId: create_content
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}:
+    get:
+      tags:
+      - Content
+      summary: Get /v1/content/{contentId} (not built yet)
+      operationId: get_content
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Content
+      summary: Delete /v1/content/{contentId} (not built yet)
+      operationId: discard_content
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/deliveries:
+    get:
+      tags:
+      - Deliveries
+      summary: Get /v1/content/{contentId}/deliveries (not built yet)
+      operationId: list_content_deliveries
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/destinations:
+    get:
+      tags:
+      - Publishing
+      summary: Get /v1/content/{contentId}/destinations (not built yet)
+      operationId: list_content_destinations
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/destinations/{destinationId}:
+    put:
+      tags:
+      - Publishing
+      summary: Put /v1/content/{contentId}/destinations/{destinationId} (not built yet)
+      operationId: publish_content
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      - name: destinationId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Publishing
+      summary: Delete /v1/content/{contentId}/destinations/{destinationId} (not built yet)
+      operationId: cancel_content_publishing
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      - name: destinationId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/edit-requests:
+    post:
+      tags:
+      - Content
+      summary: Post /v1/content/{contentId}/edit-requests (not built yet)
+      operationId: request_content_edit
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/publications:
+    get:
+      tags:
+      - Publications
+      summary: Get /v1/content/{contentId}/publications (not built yet)
+      operationId: list_content_publications
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Publications
+      summary: Post /v1/content/{contentId}/publications (not built yet)
+      operationId: mark_content_published
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/regenerations:
+    post:
+      tags:
+      - Content
+      summary: Post /v1/content/{contentId}/regenerations (not built yet)
+      operationId: regenerate_content
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/restorations:
+    post:
+      tags:
+      - Content
+      summary: Post /v1/content/{contentId}/restorations (not built yet)
+      operationId: restore_content
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/revisions:
+    get:
+      tags:
+      - Revisions
+      summary: Get /v1/content/{contentId}/revisions (not built yet)
+      operationId: list_content_revisions
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Revisions
+      summary: Post /v1/content/{contentId}/revisions (not built yet)
+      operationId: add_content_revision
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/revisions/{revisionId}:
+    get:
+      tags:
+      - Revisions
+      summary: Get /v1/content/{contentId}/revisions/{revisionId} (not built yet)
+      operationId: get_content_revision
+      parameters:
+      - name: contentId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      - name: revisionId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/credits:
+    get:
+      tags:
+      - Credits
+      summary: Get /v1/credits (not built yet)
+      operationId: get_credits
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/destinations:
+    get:
+      tags:
+      - Destinations
+      summary: Get /v1/destinations (not built yet)
+      operationId: list_destinations
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Destinations
+      summary: Post /v1/destinations (not built yet)
+      operationId: create_destination
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/destinations/{destinationId}:
+    delete:
+      tags:
+      - Destinations
+      summary: Delete /v1/destinations/{destinationId} (not built yet)
+      operationId: remove_destination
+      parameters:
+      - name: destinationId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Destinations
+      summary: Patch /v1/destinations/{destinationId} (not built yet)
+      operationId: update_destination
+      parameters:
+      - name: destinationId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/destinations/{destinationId}/github:
+    put:
+      tags:
+      - Destinations
+      summary: Put /v1/destinations/{destinationId}/github (not built yet)
+      operationId: configure_destination_github
+      parameters:
+      - name: destinationId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/engines:
+    get:
+      tags:
+      - Engines
+      summary: Get /v1/engines (not built yet)
+      operationId: get_engines
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - Engines
+      summary: Put /v1/engines (not built yet)
+      operationId: put_engines
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/keywords:
+    get:
+      tags:
+      - Keywords
+      summary: Get /v1/keywords (not built yet)
+      operationId: list_keywords
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/me:
+    get:
+      tags:
+      - Meta
+      summary: The authenticated workspace and key owner
+      operationId: get_me
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/notification-rules:
+    get:
+      tags:
+      - Notifications
+      summary: Get /v1/notification-rules (not built yet)
+      operationId: list_notification_rules
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/notification-rules/{category}:
+    patch:
+      tags:
+      - Notifications
+      summary: Patch /v1/notification-rules/{category} (not built yet)
+      operationId: update_notification_rule
+      parameters:
+      - name: category
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities:
+    get:
+      tags:
+      - Opportunities
+      summary: Get /v1/opportunities (not built yet)
+      operationId: list_opportunities
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}:
+    get:
+      tags:
+      - Opportunities
+      summary: Get /v1/opportunities/{opportunityId} (not built yet)
+      operationId: get_opportunity
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}/agent-failures:
+    post:
+      tags:
+      - Opportunities
+      summary: Post /v1/opportunities/{opportunityId}/agent-failures (not built yet)
+      operationId: report_opportunity_agent_failure
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}/brief:
+    get:
+      tags:
+      - Opportunities
+      summary: Get /v1/opportunities/{opportunityId}/brief (not built yet)
+      operationId: get_opportunity_brief
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}/claims:
+    post:
+      tags:
+      - Opportunities
+      summary: Post /v1/opportunities/{opportunityId}/claims (not built yet)
+      operationId: claim_opportunity
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}/claims/current:
+    delete:
+      tags:
+      - Opportunities
+      summary: Delete /v1/opportunities/{opportunityId}/claims/current (not built yet)
+      operationId: release_opportunity_claim
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}/dismissal:
+    post:
+      tags:
+      - Opportunities
+      summary: Post /v1/opportunities/{opportunityId}/dismissal (not built yet)
+      operationId: dismiss_opportunity
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Opportunities
+      summary: Delete /v1/opportunities/{opportunityId}/dismissal (not built yet)
+      operationId: restore_opportunity
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/opportunities/{opportunityId}/plan-requests:
+    post:
+      tags:
+      - Opportunities
+      summary: Post /v1/opportunities/{opportunityId}/plan-requests (not built yet)
+      operationId: request_opportunity_plan
+      parameters:
+      - name: opportunityId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/plan-batches:
+    post:
+      tags:
+      - Planning
+      summary: Post /v1/plan-batches (not built yet)
+      operationId: create_plan_batch
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/pricing:
+    get:
+      tags:
+      - Pricing
+      summary: Get /v1/pricing (not built yet)
+      operationId: get_pricing
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+  /v1/projects:
+    get:
+      tags:
+      - Projects
+      summary: List projects
+      operationId: list_projects
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectList'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Projects
+      summary: Create a project
+      operationId: create_project
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProject'
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSummary'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/projects/{projectId}:
+    get:
+      tags:
+      - Projects
+      summary: Get /v1/projects/{projectId} (not built yet)
+      operationId: get_project
+      parameters:
+      - name: projectId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts:
+    get:
+      tags:
+      - Prompts
+      summary: Get /v1/prompts (not built yet)
+      operationId: list_prompts
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - Prompts
+      summary: Put /v1/prompts (not built yet)
+      operationId: edit_prompts_bulk
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Prompts
+      summary: Post /v1/prompts (not built yet)
+      operationId: add_prompt
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/bulk:
+    post:
+      tags:
+      - Prompts
+      summary: Post /v1/prompts/bulk (not built yet)
+      operationId: add_prompts_bulk
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/cap:
+    get:
+      tags:
+      - Prompts
+      summary: Get /v1/prompts/cap (not built yet)
+      operationId: get_prompt_cap
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/suggestions:
+    get:
+      tags:
+      - Prompts
+      summary: Get /v1/prompts/suggestions (not built yet)
+      operationId: get_prompt_suggestion
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Prompts
+      summary: Post /v1/prompts/suggestions (not built yet)
+      operationId: suggest_prompts
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Prompts
+      summary: Delete /v1/prompts/suggestions (not built yet)
+      operationId: cancel_prompt_suggestion
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/topics:
+    get:
+      tags:
+      - Prompts
+      summary: Get /v1/prompts/topics (not built yet)
+      operationId: list_prompt_topics
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/topics/{topic}:
+    delete:
+      tags:
+      - Prompts
+      summary: Delete /v1/prompts/topics/{topic} (not built yet)
+      operationId: remove_prompt_topic
+      parameters:
+      - name: topic
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/{promptId}:
+    get:
+      tags:
+      - Prompts
+      summary: Get /v1/prompts/{promptId} (not built yet)
+      operationId: get_prompt
+      parameters:
+      - name: promptId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Prompts
+      summary: Delete /v1/prompts/{promptId} (not built yet)
+      operationId: remove_prompt
+      parameters:
+      - name: promptId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Prompts
+      summary: Patch /v1/prompts/{promptId} (not built yet)
+      operationId: edit_prompt
+      parameters:
+      - name: promptId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/{promptId}/answers:
+    get:
+      tags:
+      - Answers
+      summary: Get /v1/prompts/{promptId}/answers (not built yet)
+      operationId: list_prompt_answers
+      parameters:
+      - name: promptId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/{promptId}/pause:
+    post:
+      tags:
+      - Prompts
+      summary: Post /v1/prompts/{promptId}/pause (not built yet)
+      operationId: pause_prompt
+      parameters:
+      - name: promptId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/prompts/{promptId}/replacements:
+    post:
+      tags:
+      - Prompts
+      summary: Post /v1/prompts/{promptId}/replacements (not built yet)
+      operationId: replace_prompt
+      parameters:
+      - name: promptId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/research:
+    get:
+      tags:
+      - Research
+      summary: Get /v1/research (not built yet)
+      operationId: get_research
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/research-requests:
+    post:
+      tags:
+      - Research
+      summary: Post /v1/research-requests (not built yet)
+      operationId: create_research_request
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/research/report:
+    get:
+      tags:
+      - Research
+      summary: Get /v1/research/report (not built yet)
+      operationId: get_research_report
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/site-changes/{changeId}:
+    get:
+      tags:
+      - Site changes
+      summary: Get /v1/site-changes/{changeId} (not built yet)
+      operationId: get_site_change
+      parameters:
+      - name: changeId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Site changes
+      summary: Delete /v1/site-changes/{changeId} (not built yet)
+      operationId: discard_site_change
+      parameters:
+      - name: changeId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/site-changes/{changeId}/pull-requests:
+    post:
+      tags:
+      - Site changes
+      summary: Post /v1/site-changes/{changeId}/pull-requests (not built yet)
+      operationId: create_site_change_pull_request
+      parameters:
+      - name: changeId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/usage:
+    get:
+      tags:
+      - Usage
+      summary: Usage and the daily scan cap
+      operationId: get_usage
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usage'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/usage/cap:
+    put:
+      tags:
+      - Usage
+      summary: Put /v1/usage/cap (not built yet)
+      operationId: set_usage_cap
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/visibility-runs:
+    get:
+      tags:
+      - Visibility runs
+      summary: Get /v1/visibility-runs (not built yet)
+      operationId: list_visibility_runs
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Visibility runs
+      summary: Post /v1/visibility-runs (not built yet)
+      operationId: create_visibility_run
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/visibility-runs/{runId}:
+    get:
+      tags:
+      - Visibility runs
+      summary: Get /v1/visibility-runs/{runId} (not built yet)
+      operationId: get_visibility_run
+      parameters:
+      - name: runId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/webhooks:
+    get:
+      tags:
+      - Webhooks
+      summary: Get /v1/webhooks (not built yet)
+      operationId: list_webhooks
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Webhooks
+      summary: Post /v1/webhooks (not built yet)
+      operationId: create_webhook
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/webhooks/{webhookId}:
+    delete:
+      tags:
+      - Webhooks
+      summary: Delete /v1/webhooks/{webhookId} (not built yet)
+      operationId: delete_webhook
+      parameters:
+      - name: webhookId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Webhooks
+      summary: Patch /v1/webhooks/{webhookId} (not built yet)
+      operationId: update_webhook
+      parameters:
+      - name: webhookId
+        in: path
+        description: Path parameter
+        required: true
+        schema:
+          type: string
+      responses:
+        '501':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    ApiErrorBody:
+      type: object
+      description: The body of every failed `/v1` call. Shape kept from the source API.
+      required:
+      - error
+      - code
+      - request_id
+      - docs
+      properties:
+        code:
+          type: string
+          description: Stable machine-readable code.
+        docs:
+          type: string
+          description: Where the error codes are documented.
+        error:
+          type: string
+          description: What went wrong and how to fix the request.
+        request_id:
+          type: string
+          format: uuid
+          description: Quote it to support.
+    ApiKeyList:
+      type: object
+      required:
+      - keys
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiKeySummary'
+    ApiKeySummary:
+      type: object
+      required:
+      - id
+      - name
+      - keyPrefix
+      - createdAt
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        keyPrefix:
+          type: string
+        lastUsedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        name:
+          type: string
+        revokedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    CreateProject:
+      type: object
+      required:
+      - name
+      - domain
+      properties:
+        domain:
+          type: string
+          description: Host name, for example `acme.com`.
+        name:
+          type: string
+        siteUrl:
+          type:
+          - string
+          - 'null'
+    IssueApiKey:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: A name to recognize the key later.
+    IssuedApiKey:
+      type: object
+      required:
+      - id
+      - key
+      - keyPrefix
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          description: Shown once. Store it now; the server keeps only its hash.
+        keyPrefix:
+          type: string
+    Me:
+      type: object
+      required:
+      - user
+      - workspace_id
+      properties:
+        project:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/MeProject'
+        user:
+          $ref: '#/components/schemas/MeUser'
+        workspace_id:
+          type: string
+          format: uuid
+    MeProject:
+      type: object
+      required:
+      - id
+      - domain
+      properties:
+        domain:
+          type: string
+        id:
+          type: string
+          format: uuid
+    MeUser:
+      type: object
+      required:
+      - id
+      - email
+      properties:
+        email:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+    ProjectList:
+      type: object
+      required:
+      - projects
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectSummary'
+    ProjectSummary:
+      type: object
+      required:
+      - id
+      - name
+      - domain
+      - siteUrl
+      - status
+      - createdAt
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        domain:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        siteUrl:
+          type: string
+        status:
+          type: string
+          description: '`setup`, `active`, `paused` or `blocked`.'
+    Usage:
+      type: object
+      required:
+      - scans_today
+      - cost_cents_today
+      - cost_cents_month
+      properties:
+        cost_cents_month:
+          type: number
+          format: double
+        cost_cents_today:
+          type: number
+          format: double
+        scan_cap_per_day:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          description: '`null` when no cap is set. The default is no cap.'
+          minimum: 0
+        scans_today:
+          type: integer
+          format: int64
+          description: Scans started in the current UTC day.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: sk
