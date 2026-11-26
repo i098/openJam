@@ -6,11 +6,11 @@ services:
     environment:
       POSTGRES_USER: openjam
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openjam}
-      POSTGRES_DB: openjam
+      POSTGRES_DB: ${OPENJAM_DB_NAME:-openjam}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U openjam -d openjam"]
+      test: ["CMD-SHELL", "pg_isready -U openjam -d ${OPENJAM_DB_NAME:-openjam}"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile.api
     environment:
-      DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/openjam
+      DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/${OPENJAM_DB_NAME:-openjam}
       OPENJAM_ALLOW_SIGNUP: ${OPENJAM_ALLOW_SIGNUP:-true}
       OPENJAM_COOKIE_SECURE: ${OPENJAM_COOKIE_SECURE:-false}
       OPENJAM_SESSION_DAYS: ${OPENJAM_SESSION_DAYS:-30}
@@ -39,7 +39,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8081:8080"
+      - "127.0.0.1:${OPENJAM_API_PORT:-8081}:8080"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
       interval: 10s
@@ -52,7 +52,7 @@ services:
       dockerfile: Dockerfile.api
     command: ["openjam-worker"]
     environment:
-      DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/openjam
+      DATABASE_URL: postgres://openjam:${POSTGRES_PASSWORD:-openjam}@db:5432/${OPENJAM_DB_NAME:-openjam}
       OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
       RUST_LOG: ${RUST_LOG:-info}
       RUNNER_SHARED_SECRET: ${RUNNER_SHARED_SECRET:-}
