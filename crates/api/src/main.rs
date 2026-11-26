@@ -22,9 +22,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     db::migrate(&pool).await.map_err(|e| e.to_string())?;
 
     let bind = config.bind.clone();
+    let github = match openjam_publish::github::App::from_env() {
+        Ok(app) => app.map(Arc::new),
+        Err(e) => {
+            tracing::error!("GitHub publishing is off: {e}");
+            None
+        }
+    };
     let state = AppState {
         pool,
         config: Arc::new(config),
+        github,
     };
     // Fail here rather than on the first request if the contract cannot be built.
     let _ = openapi_yaml();

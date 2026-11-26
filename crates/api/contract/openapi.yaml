@@ -777,10 +777,48 @@ paths:
     get:
       tags:
       - Content
-      summary: Get /v1/content (not built yet)
+      summary: List content
       operationId: list_content
+      parameters:
+      - name: state
+        in: query
+        description: 'Only content in these states: `drafted`, `discarded`, or both separated by a comma.'
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Items per page, 1 to 100. The default is 100.
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: '`pageInfo.nextCursor` of the page before.'
+        required: false
+        schema:
+          type: string
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentList'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -791,10 +829,40 @@ paths:
     post:
       tags:
       - Content
-      summary: Post /v1/content (not built yet)
+      summary: Store a draft
       operationId: create_content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContent'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedContent'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -806,17 +874,30 @@ paths:
     get:
       tags:
       - Content
-      summary: Get /v1/content/{contentId} (not built yet)
+      summary: Get content
       operationId: get_content
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentItem'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -827,17 +908,26 @@ paths:
     delete:
       tags:
       - Content
-      summary: Delete /v1/content/{contentId} (not built yet)
+      summary: Discard content
       operationId: discard_content
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: The content is discarded.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -849,17 +939,30 @@ paths:
     get:
       tags:
       - Deliveries
-      summary: Get /v1/content/{contentId}/deliveries (not built yet)
+      summary: Content's deliveries
       operationId: list_content_deliveries
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deliveries'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -871,17 +974,30 @@ paths:
     get:
       tags:
       - Publishing
-      summary: Get /v1/content/{contentId}/destinations (not built yet)
+      summary: Content's destinations
       operationId: list_content_destinations
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDestinations'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -893,23 +1009,55 @@ paths:
     put:
       tags:
       - Publishing
-      summary: Put /v1/content/{contentId}/destinations/{destinationId} (not built yet)
+      summary: Publish content to a destination
       operationId: publish_content
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       - name: destinationId
         in: path
-        description: Path parameter
+        description: The destination
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Publish'
+        required: true
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedDelivery'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -920,23 +1068,45 @@ paths:
     delete:
       tags:
       - Publishing
-      summary: Delete /v1/content/{contentId}/destinations/{destinationId} (not built yet)
+      summary: Cancel publishing to a destination
       operationId: cancel_content_publishing
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       - name: destinationId
         in: path
-        description: Path parameter
+        description: The destination
         required: true
+        schema:
+          type: string
+          format: uuid
+      - name: withdraw
+        in: query
+        description: '`true` confirms that cancelling may close the pull request that is open.'
+        required: false
         schema:
           type: string
       responses:
-        '501':
+        '204':
+          description: The schedule is cancelled.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -948,17 +1118,90 @@ paths:
     post:
       tags:
       - Content
-      summary: Post /v1/content/{contentId}/edit-requests (not built yet)
+      summary: Request an edit
       operationId: request_content_edit
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditRequest'
+        required: true
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accepted'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+      security:
+      - bearerAuth: []
+  /v1/content/{contentId}/markdown:
+    get:
+      tags:
+      - Content
+      summary: Export as Markdown
+      operationId: export_content_markdown
+      parameters:
+      - name: contentId
+        in: path
+        description: The content item
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: revisionId
+        in: query
+        description: The revision to export. The default is the current one.
+        required: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: ''
+          content:
+            text/markdown:
+              schema:
+                type: string
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -970,17 +1213,30 @@ paths:
     get:
       tags:
       - Publications
-      summary: Get /v1/content/{contentId}/publications (not built yet)
+      summary: Content's publications
       operationId: list_content_publications
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publications'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -991,17 +1247,48 @@ paths:
     post:
       tags:
       - Publications
-      summary: Post /v1/content/{contentId}/publications (not built yet)
+      summary: Mark as published
       operationId: mark_content_published
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkPublished'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publication'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -1013,17 +1300,42 @@ paths:
     post:
       tags:
       - Content
-      summary: Post /v1/content/{contentId}/regenerations (not built yet)
+      summary: Write the content again
       operationId: regenerate_content
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegenerateContent'
+        required: true
       responses:
-        '501':
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accepted'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -1035,17 +1347,26 @@ paths:
     post:
       tags:
       - Content
-      summary: Post /v1/content/{contentId}/restorations (not built yet)
+      summary: Restore discarded content
       operationId: restore_content
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: The content is restored.
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1057,17 +1378,30 @@ paths:
     get:
       tags:
       - Revisions
-      summary: Get /v1/content/{contentId}/revisions (not built yet)
+      summary: List revisions
       operationId: list_content_revisions
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revisions'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1078,17 +1412,48 @@ paths:
     post:
       tags:
       - Revisions
-      summary: Post /v1/content/{contentId}/revisions (not built yet)
+      summary: Store a revision
       operationId: add_content_revision
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddRevision'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddedRevision'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '409':
           description: ''
           content:
             application/json:
@@ -1100,23 +1465,37 @@ paths:
     get:
       tags:
       - Revisions
-      summary: Get /v1/content/{contentId}/revisions/{revisionId} (not built yet)
+      summary: Get a revision
       operationId: get_content_revision
       parameters:
       - name: contentId
         in: path
-        description: Path parameter
+        description: The content item
         required: true
         schema:
           type: string
+          format: uuid
       - name: revisionId
         in: path
-        description: Path parameter
+        description: The revision
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1143,10 +1522,22 @@ paths:
     get:
       tags:
       - Destinations
-      summary: Get /v1/destinations (not built yet)
+      summary: List destinations
       operationId: list_destinations
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Destinations'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1157,10 +1548,34 @@ paths:
     post:
       tags:
       - Destinations
-      summary: Post /v1/destinations (not built yet)
+      summary: Add a destination
       operationId: create_destination
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDestination'
+        required: true
       responses:
-        '501':
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddedDestination'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1172,17 +1587,20 @@ paths:
     delete:
       tags:
       - Destinations
-      summary: Delete /v1/destinations/{destinationId} (not built yet)
+      summary: Remove a destination
       operationId: remove_destination
       parameters:
       - name: destinationId
         in: path
-        description: Path parameter
+        description: The destination
         required: true
         schema:
           type: string
+          format: uuid
       responses:
-        '501':
+        '204':
+          description: The destination is removed.
+        '401':
           description: ''
           content:
             application/json:
@@ -1193,17 +1611,38 @@ paths:
     patch:
       tags:
       - Destinations
-      summary: Patch /v1/destinations/{destinationId} (not built yet)
+      summary: Change publishing policy
       operationId: update_destination
       parameters:
       - name: destinationId
         in: path
-        description: Path parameter
+        description: The destination
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DestinationPolicy'
+        required: true
       responses:
-        '501':
+        '204':
+          description: The policy is changed.
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -1215,17 +1654,42 @@ paths:
     put:
       tags:
       - Destinations
-      summary: Put /v1/destinations/{destinationId}/github (not built yet)
+      summary: Connect a GitHub repository
       operationId: configure_destination_github
       parameters:
       - name: destinationId
         in: path
-        description: Path parameter
+        description: The destination
         required: true
         schema:
           type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigureGithubDestination'
+        required: true
       responses:
-        '501':
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GithubDestination'
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '401':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorBody'
+        '404':
           description: ''
           content:
             application/json:
@@ -2283,6 +2747,70 @@ paths:
       - bearerAuth: []
 components:
   schemas:
+    Accepted:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          description: Always `accepted`.
+    AcceptedDelivery:
+      type: object
+      required:
+      - status
+      - deliveryId
+      properties:
+        deliveryId:
+          type: string
+          format: uuid
+          description: The delivery to follow under `/v1/content/{contentId}/deliveries`.
+        status:
+          type: string
+          description: Always `accepted`.
+    AddDestination:
+      type: object
+      required:
+      - platform
+      properties:
+        platform:
+          type: string
+          description: Only `github`.
+    AddRevision:
+      type: object
+      required:
+      - article
+      properties:
+        article:
+          $ref: '#/components/schemas/Article'
+        basisRevisionId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The revision this one was written from, if any.
+        bundleId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The evidence bundle it was written from, if any.
+    AddedDestination:
+      type: object
+      required:
+      - destinationId
+      properties:
+        destinationId:
+          type: string
+          format: uuid
+    AddedRevision:
+      type: object
+      required:
+      - revisionId
+      properties:
+        revisionId:
+          type: string
+          format: uuid
     AnalyticsBrand:
       type: object
       required:
@@ -2680,6 +3208,34 @@ components:
           - string
           - 'null'
           format: date-time
+    Article:
+      type: object
+      required:
+      - title
+      - metaDescription
+      - slug
+      - keywords
+      - bodyMarkdown
+      properties:
+        bodyMarkdown:
+          type: string
+          description: |-
+            The article body in Markdown with no YAML frontmatter, no top-level title heading, and
+            sections as level-2 headings.
+        keywords:
+          type: array
+          items:
+            type: string
+          description: The terms the article targets.
+        metaDescription:
+          type: string
+          description: One sentence of at most 160 characters.
+        slug:
+          type: string
+          description: Lowercase words joined by hyphens.
+        title:
+          type: string
+          description: The article headline.
     ChangeFeedItem:
       type: object
       required:
@@ -2699,6 +3255,174 @@ components:
         value:
           type: number
           format: double
+    ConfigureGithubDestination:
+      type: object
+      required:
+      - owner
+      - name
+      - baseBranch
+      - contentRoot
+      - publicRoutePattern
+      properties:
+        baseBranch:
+          type: string
+        contentRoot:
+          type: string
+          description: The folder articles live in.
+        name:
+          type: string
+        owner:
+          type: string
+        publicRoutePattern:
+          type: string
+          description: The address an article is published at, with `{slug}` where its slug goes.
+    Connection:
+      type: object
+      required:
+      - status
+      properties:
+        message:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          description: '`ok` or `problem`.'
+    Content:
+      type: object
+      required:
+      - id
+      - projectId
+      - createdAt
+      - currentRevision
+      - state
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        currentRevision:
+          $ref: '#/components/schemas/RevisionSummary'
+        discardedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        opportunityId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        state:
+          type: string
+          description: '`drafted` or `discarded`.'
+        updateFailed:
+          type:
+          - boolean
+          - 'null'
+          description: 'While drafted: whether the last update failed after the current revision was stored.'
+        updateFailure:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/UpdateFailure'
+            description: The last failure to regenerate or edit it, if any.
+    ContentDestination:
+      type: object
+      required:
+      - destinationId
+      - platform
+      - state
+      - publishAt
+      - latestDeliveryId
+      properties:
+        destinationId:
+          type: string
+          format: uuid
+        latestDeliveryId:
+          type: string
+          format: uuid
+        platform:
+          type: string
+        publishAt:
+          type: string
+          format: date-time
+          description: The latest delivery's time.
+        state:
+          type: string
+          description: '`scheduled`, `in_review`, `live`, `failed` or `cancelled`.'
+    ContentDestinations:
+      type: object
+      required:
+      - destinations
+      properties:
+        destinations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentDestination'
+    ContentItem:
+      type: object
+      required:
+      - content
+      - currentRevision
+      properties:
+        content:
+          $ref: '#/components/schemas/Content'
+        currentRevision:
+          $ref: '#/components/schemas/Revision'
+    ContentList:
+      type: object
+      required:
+      - content
+      - pageInfo
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Content'
+        pageInfo:
+          $ref: '#/components/schemas/ContentPageInfo'
+    ContentPageInfo:
+      type: object
+      required:
+      - limit
+      - hasNextPage
+      - totalCount
+      properties:
+        hasNextPage:
+          type: boolean
+        limit:
+          type: integer
+          format: int64
+        nextCursor:
+          type:
+          - string
+          - 'null'
+        totalCount:
+          type: integer
+          format: int64
+    CreateContent:
+      type: object
+      required:
+      - opportunityId
+      - article
+      properties:
+        article:
+          $ref: '#/components/schemas/Article'
+        bundleId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The evidence bundle the draft was written from, if any.
+        opportunityId:
+          type: string
+          format: uuid
+          description: An id from `GET /v1/opportunities`.
     CreateProject:
       type: object
       required:
@@ -2714,6 +3438,213 @@ components:
           type:
           - string
           - 'null'
+    CreatedContent:
+      type: object
+      required:
+      - contentId
+      - revisionId
+      properties:
+        contentId:
+          type: string
+          format: uuid
+        revisionId:
+          type: string
+          format: uuid
+    Deliveries:
+      type: object
+      required:
+      - deliveries
+      properties:
+        deliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delivery'
+    Delivery:
+      type: object
+      required:
+      - id
+      - destinationId
+      - platform
+      - automatic
+      - deliverAt
+      - state
+      - createdAt
+      properties:
+        attemptedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Null while it waits.
+        automatic:
+          type: boolean
+          description: Created by auto-publish rather than a person.
+        cancelledAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        deliverAt:
+          type: string
+          format: date-time
+          description: When it was due to go out.
+        destinationId:
+          type: string
+          format: uuid
+        failureMessage:
+          type:
+          - string
+          - 'null'
+        id:
+          type: string
+          format: uuid
+        itemUrl:
+          type:
+          - string
+          - 'null'
+          description: 'The delivered item''s page on the platform: the pull request.'
+        platform:
+          type: string
+          description: Always `github`.
+        prUrl:
+          type:
+          - string
+          - 'null'
+        publicationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        state:
+          type: string
+          description: '`scheduled`, `in_review`, `live`, `failed` or `cancelled`.'
+    Destination:
+      type: object
+      required:
+      - id
+      - projectId
+      - platform
+      - autoPublish
+      - cadence
+      - createdAt
+      - reviewSurface
+      - displayName
+      properties:
+        autoPublish:
+          type: boolean
+        cadence:
+          type: string
+          description: '`daily` or `weekly`.'
+        connection:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Connection'
+        createdAt:
+          type: string
+          format: date-time
+        displayName:
+          type: string
+        id:
+          type: string
+          format: uuid
+        platform:
+          type: string
+          description: Always `github`.
+        projectId:
+          type: string
+          format: uuid
+        reviewSurface:
+          type: boolean
+          description: Whether the platform has a human review step; auto-publish requires one.
+    DestinationPolicy:
+      type: object
+      properties:
+        autoPublish:
+          type:
+          - boolean
+          - 'null'
+          description: |-
+            Publish drafted content automatically on the cadence. Turning it on turns it off on the
+            project's other destinations.
+        cadence:
+          type:
+          - string
+          - 'null'
+          description: '`daily` or `weekly`.'
+    Destinations:
+      type: object
+      required:
+      - destinations
+      properties:
+        destinations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Destination'
+    EditRequest:
+      type: object
+      required:
+      - basisRevisionId
+      - instruction
+      properties:
+        basisRevisionId:
+          type: string
+          format: uuid
+          description: The revision to edit, normally the current one.
+        instruction:
+          type: string
+          description: What to change, at most 4000 characters.
+    Finding:
+      type: object
+      required:
+      - check
+      - code
+      - severity
+      - message
+      properties:
+        check:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        quote:
+          type:
+          - string
+          - 'null'
+        severity:
+          type: string
+          description: '`blocking` or `advisory`.'
+    GithubDestination:
+      type: object
+      required:
+      - destinationId
+      - repository
+      - baseBranch
+      - contentRoot
+      - publicRoutePattern
+      - fileExtension
+      - requiredFrontmatter
+      properties:
+        baseBranch:
+          type: string
+        contentRoot:
+          type: string
+        destinationId:
+          type: string
+          format: uuid
+        fileExtension:
+          type: string
+        publicRoutePattern:
+          type: string
+        repository:
+          type: string
+        requiredFrontmatter:
+          type: array
+          items:
+            type: string
     IssueApiKey:
       type: object
       required:
@@ -2778,6 +3709,14 @@ components:
           - number
           - 'null'
           format: double
+    MarkPublished:
+      type: object
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          description: The public page the content is live at; http or https.
     Me:
       type: object
       required:
@@ -3174,6 +4113,117 @@ components:
           type:
           - string
           - 'null'
+    Publication:
+      type: object
+      required:
+      - id
+      - contentId
+      - url
+      - publishedAt
+      properties:
+        contentId:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        publishedAt:
+          type: string
+          format: date-time
+        url:
+          type: string
+          description: The public page the content is live at.
+    Publications:
+      type: object
+      required:
+      - publications
+      properties:
+        publications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Publication'
+    Publish:
+      type: object
+      properties:
+        publishAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When to publish, as an ISO-8601 timestamp.
+        when:
+          type:
+          - string
+          - 'null'
+          description: Send `"now"` to publish now. Send this or `publishAt`, not both.
+    RegenerateContent:
+      type: object
+      required:
+      - basisRevisionId
+      properties:
+        basisRevisionId:
+          type: string
+          format: uuid
+          description: The revision being replaced, normally the current one.
+    Revision:
+      allOf:
+      - $ref: '#/components/schemas/RevisionSummary'
+      - type: object
+        required:
+        - contentId
+        - article
+        properties:
+          article:
+            $ref: '#/components/schemas/Article'
+          contentId:
+            type: string
+            format: uuid
+    RevisionSummary:
+      type: object
+      required:
+      - id
+      - title
+      - source
+      - findings
+      - needsReview
+      - createdAt
+      properties:
+        basisRevisionId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        evidenceBundleId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+        id:
+          type: string
+          format: uuid
+        needsReview:
+          type: boolean
+        source:
+          type: string
+          description: 'Who wrote it: `pipeline` (openJam), `human` or `agent`.'
+        title:
+          type: string
+    Revisions:
+      type: object
+      required:
+      - revisions
+      properties:
+        revisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevisionSummary'
     TopicRanking:
       type: object
       required:
@@ -3227,6 +4277,21 @@ components:
           items:
             $ref: '#/components/schemas/TrendPoint'
         unit:
+          type: string
+    UpdateFailure:
+      type: object
+      required:
+      - code
+      - message
+      - at
+      properties:
+        at:
+          type: string
+          format: date-time
+        code:
+          type: string
+          description: '`insufficient_credits`, `agent_failed` or `failed`.'
+        message:
           type: string
     Usage:
       type: object

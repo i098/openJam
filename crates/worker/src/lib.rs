@@ -1,6 +1,8 @@
 //! The job worker: claims Postgres jobs, runs scan calls and the judge, and starts scans on schedule.
 
+mod content_update;
 mod judge;
+mod publish;
 mod scan;
 
 use chrono::{DateTime, Duration, Utc};
@@ -9,11 +11,18 @@ use openjam_core::{
     tracking::{self, QUEUE_JUDGE, QUEUE_SCAN},
 };
 use openjam_engines::Router;
+use openjam_publish::{delivery::QUEUE as QUEUE_PUBLISH, store::QUEUE_UPDATE};
 use sqlx::PgPool;
 use uuid::Uuid;
 
 pub const MAINTENANCE: &str = "maintenance";
-pub const WORKER_QUEUES: &[&str] = &[QUEUE_SCAN, QUEUE_JUDGE, MAINTENANCE];
+pub const WORKER_QUEUES: &[&str] = &[
+    QUEUE_SCAN,
+    QUEUE_JUDGE,
+    QUEUE_PUBLISH,
+    QUEUE_UPDATE,
+    MAINTENANCE,
+];
 /// A job still `running` after this long lost its worker. Longer than the 120 s provider limit.
 pub const STALE_SECS: i64 = 300;
 /// Projects started in one scheduler tick.
@@ -50,6 +59,8 @@ async fn handle(svc: &Services, job: &Job) -> Result<Outcome, String> {
     match job.queue.as_str() {
         QUEUE_SCAN => scan::handle(svc, job).await,
         QUEUE_JUDGE => judge::handle(svc, job).await,
+        QUEUE_PUBLISH => publish::handle(svc, job).await,
+        QUEUE_UPDATE => content_update::handle(svc, job).await,
         MAINTENANCE => {
             let freed = jobs::requeue_stale(&svc.pool, STALE_SECS)
                 .await

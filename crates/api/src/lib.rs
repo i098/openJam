@@ -3,8 +3,10 @@
 pub mod analytics;
 pub mod answers;
 pub mod auth;
+pub mod content;
 pub mod error;
 pub mod health;
+pub mod publishing;
 pub mod routes;
 pub mod state;
 pub mod types;

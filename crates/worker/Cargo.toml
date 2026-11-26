@@ -8,6 +8,7 @@ publish.workspace = true
 [dependencies]
 openjam-core.workspace = true
 openjam-engines.workspace = true
+openjam-publish.workspace = true
 chrono.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true

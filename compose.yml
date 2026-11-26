@@ -27,6 +27,8 @@ services:
       # No scan limit by default. Set a number to cap scans per UTC day, per workspace.
       OPENJAM_SCAN_CAP_PER_DAY: ${OPENJAM_SCAN_CAP_PER_DAY:-}
       OPENJAM_LOG_FORMAT: ${OPENJAM_LOG_FORMAT:-json}
+      OPENJAM_GITHUB_APP_ID: ${OPENJAM_GITHUB_APP_ID:-}
+      OPENJAM_GITHUB_APP_PRIVATE_KEY: ${OPENJAM_GITHUB_APP_PRIVATE_KEY:-}
       RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       db:
@@ -50,6 +52,8 @@ services:
       RUST_LOG: ${RUST_LOG:-info}
       RUNNER_SHARED_SECRET: ${RUNNER_SHARED_SECRET:-}
       OPENJAM_RUNNER_URL: http://runner:8080
+      OPENJAM_GITHUB_APP_ID: ${OPENJAM_GITHUB_APP_ID:-}
+      OPENJAM_GITHUB_APP_PRIVATE_KEY: ${OPENJAM_GITHUB_APP_PRIVATE_KEY:-}
     volumes:
       - secrets:/var/lib/openjam
     networks:

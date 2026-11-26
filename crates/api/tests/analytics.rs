@@ -346,6 +346,7 @@ async fn fixture(pool: PgPool) -> Fixture {
     Fixture {
         app: router(AppState {
             pool,
+            github: None,
             config: Arc::new(Config {
                 database_url: String::new(),
                 bind: String::new(),

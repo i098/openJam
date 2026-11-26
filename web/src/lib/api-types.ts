@@ -392,10 +392,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content (not built yet) */
+        /** List content */
         get: operations["list_content"];
         put?: never;
-        /** Post /v1/content (not built yet) */
+        /** Store a draft */
         post: operations["create_content"];
         delete?: never;
         options?: never;
@@ -410,11 +410,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content/{contentId} (not built yet) */
+        /** Get content */
         get: operations["get_content"];
         put?: never;
         post?: never;
-        /** Delete /v1/content/{contentId} (not built yet) */
+        /** Discard content */
         delete: operations["discard_content"];
         options?: never;
         head?: never;
@@ -428,7 +428,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content/{contentId}/deliveries (not built yet) */
+        /** Content's deliveries */
         get: operations["list_content_deliveries"];
         put?: never;
         post?: never;
@@ -445,7 +445,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content/{contentId}/destinations (not built yet) */
+        /** Content's destinations */
         get: operations["list_content_destinations"];
         put?: never;
         post?: never;
@@ -463,10 +463,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Put /v1/content/{contentId}/destinations/{destinationId} (not built yet) */
+        /** Publish content to a destination */
         put: operations["publish_content"];
         post?: never;
-        /** Delete /v1/content/{contentId}/destinations/{destinationId} (not built yet) */
+        /** Cancel publishing to a destination */
         delete: operations["cancel_content_publishing"];
         options?: never;
         head?: never;
@@ -482,8 +482,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/content/{contentId}/edit-requests (not built yet) */
+        /** Request an edit */
         post: operations["request_content_edit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/content/{contentId}/markdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export as Markdown */
+        get: operations["export_content_markdown"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -497,10 +514,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content/{contentId}/publications (not built yet) */
+        /** Content's publications */
         get: operations["list_content_publications"];
         put?: never;
-        /** Post /v1/content/{contentId}/publications (not built yet) */
+        /** Mark as published */
         post: operations["mark_content_published"];
         delete?: never;
         options?: never;
@@ -517,7 +534,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/content/{contentId}/regenerations (not built yet) */
+        /** Write the content again */
         post: operations["regenerate_content"];
         delete?: never;
         options?: never;
@@ -534,7 +551,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post /v1/content/{contentId}/restorations (not built yet) */
+        /** Restore discarded content */
         post: operations["restore_content"];
         delete?: never;
         options?: never;
@@ -549,10 +566,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content/{contentId}/revisions (not built yet) */
+        /** List revisions */
         get: operations["list_content_revisions"];
         put?: never;
-        /** Post /v1/content/{contentId}/revisions (not built yet) */
+        /** Store a revision */
         post: operations["add_content_revision"];
         delete?: never;
         options?: never;
@@ -567,7 +584,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/content/{contentId}/revisions/{revisionId} (not built yet) */
+        /** Get a revision */
         get: operations["get_content_revision"];
         put?: never;
         post?: never;
@@ -601,10 +618,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get /v1/destinations (not built yet) */
+        /** List destinations */
         get: operations["list_destinations"];
         put?: never;
-        /** Post /v1/destinations (not built yet) */
+        /** Add a destination */
         post: operations["create_destination"];
         delete?: never;
         options?: never;
@@ -622,11 +639,11 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete /v1/destinations/{destinationId} (not built yet) */
+        /** Remove a destination */
         delete: operations["remove_destination"];
         options?: never;
         head?: never;
-        /** Patch /v1/destinations/{destinationId} (not built yet) */
+        /** Change publishing policy */
         patch: operations["update_destination"];
         trace?: never;
     };
@@ -638,7 +655,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Put /v1/destinations/{destinationId}/github (not built yet) */
+        /** Connect a GitHub repository */
         put: operations["configure_destination_github"];
         post?: never;
         delete?: never;
@@ -1310,6 +1327,44 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Accepted: {
+            /** @description Always `accepted`. */
+            status: string;
+        };
+        AcceptedDelivery: {
+            /**
+             * Format: uuid
+             * @description The delivery to follow under `/v1/content/{contentId}/deliveries`.
+             */
+            deliveryId: string;
+            /** @description Always `accepted`. */
+            status: string;
+        };
+        AddDestination: {
+            /** @description Only `github`. */
+            platform: string;
+        };
+        AddRevision: {
+            article: components["schemas"]["Article"];
+            /**
+             * Format: uuid
+             * @description The revision this one was written from, if any.
+             */
+            basisRevisionId?: string | null;
+            /**
+             * Format: uuid
+             * @description The evidence bundle it was written from, if any.
+             */
+            bundleId?: string | null;
+        };
+        AddedDestination: {
+            /** Format: uuid */
+            destinationId: string;
+        };
+        AddedRevision: {
+            /** Format: uuid */
+            revisionId: string;
+        };
         AnalyticsBrand: {
             domain?: string | null;
             isOwned: boolean;
@@ -1458,6 +1513,21 @@ export interface components {
             /** Format: date-time */
             revokedAt?: string | null;
         };
+        Article: {
+            /**
+             * @description The article body in Markdown with no YAML frontmatter, no top-level title heading, and
+             *     sections as level-2 headings.
+             */
+            bodyMarkdown: string;
+            /** @description The terms the article targets. */
+            keywords: string[];
+            /** @description One sentence of at most 160 characters. */
+            metaDescription: string;
+            /** @description Lowercase words joined by hyphens. */
+            slug: string;
+            /** @description The article headline. */
+            title: string;
+        };
         ChangeFeedItem: {
             /** Format: double */
             delta: number;
@@ -1467,11 +1537,186 @@ export interface components {
             /** Format: double */
             value: number;
         };
+        ConfigureGithubDestination: {
+            baseBranch: string;
+            /** @description The folder articles live in. */
+            contentRoot: string;
+            name: string;
+            owner: string;
+            /** @description The address an article is published at, with `{slug}` where its slug goes. */
+            publicRoutePattern: string;
+        };
+        Connection: {
+            message?: string | null;
+            /** @description `ok` or `problem`. */
+            status: string;
+        };
+        Content: {
+            /** Format: date-time */
+            createdAt: string;
+            currentRevision: components["schemas"]["RevisionSummary"];
+            /** Format: date-time */
+            discardedAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            /** Format: uuid */
+            projectId: string;
+            /** @description `drafted` or `discarded`. */
+            state: string;
+            /** @description While drafted: whether the last update failed after the current revision was stored. */
+            updateFailed?: boolean | null;
+            updateFailure?: null | components["schemas"]["UpdateFailure"];
+        };
+        ContentDestination: {
+            /** Format: uuid */
+            destinationId: string;
+            /** Format: uuid */
+            latestDeliveryId: string;
+            platform: string;
+            /**
+             * Format: date-time
+             * @description The latest delivery's time.
+             */
+            publishAt: string;
+            /** @description `scheduled`, `in_review`, `live`, `failed` or `cancelled`. */
+            state: string;
+        };
+        ContentDestinations: {
+            destinations: components["schemas"]["ContentDestination"][];
+        };
+        ContentItem: {
+            content: components["schemas"]["Content"];
+            currentRevision: components["schemas"]["Revision"];
+        };
+        ContentList: {
+            content: components["schemas"]["Content"][];
+            pageInfo: components["schemas"]["ContentPageInfo"];
+        };
+        ContentPageInfo: {
+            hasNextPage: boolean;
+            /** Format: int64 */
+            limit: number;
+            nextCursor?: string | null;
+            /** Format: int64 */
+            totalCount: number;
+        };
+        CreateContent: {
+            article: components["schemas"]["Article"];
+            /**
+             * Format: uuid
+             * @description The evidence bundle the draft was written from, if any.
+             */
+            bundleId?: string | null;
+            /**
+             * Format: uuid
+             * @description An id from `GET /v1/opportunities`.
+             */
+            opportunityId: string;
+        };
         CreateProject: {
             /** @description Host name, for example `acme.com`. */
             domain: string;
             name: string;
             siteUrl?: string | null;
+        };
+        CreatedContent: {
+            /** Format: uuid */
+            contentId: string;
+            /** Format: uuid */
+            revisionId: string;
+        };
+        Deliveries: {
+            deliveries: components["schemas"]["Delivery"][];
+        };
+        Delivery: {
+            /**
+             * Format: date-time
+             * @description Null while it waits.
+             */
+            attemptedAt?: string | null;
+            /** @description Created by auto-publish rather than a person. */
+            automatic: boolean;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description When it was due to go out.
+             */
+            deliverAt: string;
+            /** Format: uuid */
+            destinationId: string;
+            failureMessage?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description The delivered item's page on the platform: the pull request. */
+            itemUrl?: string | null;
+            /** @description Always `github`. */
+            platform: string;
+            prUrl?: string | null;
+            /** Format: uuid */
+            publicationId?: string | null;
+            /** @description `scheduled`, `in_review`, `live`, `failed` or `cancelled`. */
+            state: string;
+        };
+        Destination: {
+            autoPublish: boolean;
+            /** @description `daily` or `weekly`. */
+            cadence: string;
+            connection?: null | components["schemas"]["Connection"];
+            /** Format: date-time */
+            createdAt: string;
+            displayName: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Always `github`. */
+            platform: string;
+            /** Format: uuid */
+            projectId: string;
+            /** @description Whether the platform has a human review step; auto-publish requires one. */
+            reviewSurface: boolean;
+        };
+        DestinationPolicy: {
+            /**
+             * @description Publish drafted content automatically on the cadence. Turning it on turns it off on the
+             *     project's other destinations.
+             */
+            autoPublish?: boolean | null;
+            /** @description `daily` or `weekly`. */
+            cadence?: string | null;
+        };
+        Destinations: {
+            destinations: components["schemas"]["Destination"][];
+        };
+        EditRequest: {
+            /**
+             * Format: uuid
+             * @description The revision to edit, normally the current one.
+             */
+            basisRevisionId: string;
+            /** @description What to change, at most 4000 characters. */
+            instruction: string;
+        };
+        Finding: {
+            check: string;
+            code: string;
+            message: string;
+            quote?: string | null;
+            /** @description `blocking` or `advisory`. */
+            severity: string;
+        };
+        GithubDestination: {
+            baseBranch: string;
+            contentRoot: string;
+            /** Format: uuid */
+            destinationId: string;
+            fileExtension: string;
+            publicRoutePattern: string;
+            repository: string;
+            requiredFrontmatter: string[];
         };
         IssueApiKey: {
             /** @description A name to recognize the key later. */
@@ -1500,6 +1745,10 @@ export interface components {
             shareOfVoice?: number | null;
             /** Format: double */
             visibilityScore?: number | null;
+        };
+        MarkPublished: {
+            /** @description The public page the content is live at; http or https. */
+            url: string;
         };
         Me: {
             project?: null | components["schemas"]["MeProject"];
@@ -1660,6 +1909,58 @@ export interface components {
             text: string;
             topic?: string | null;
         };
+        Publication: {
+            /** Format: uuid */
+            contentId: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            publishedAt: string;
+            /** @description The public page the content is live at. */
+            url: string;
+        };
+        Publications: {
+            publications: components["schemas"]["Publication"][];
+        };
+        Publish: {
+            /**
+             * Format: date-time
+             * @description When to publish, as an ISO-8601 timestamp.
+             */
+            publishAt?: string | null;
+            /** @description Send `"now"` to publish now. Send this or `publishAt`, not both. */
+            when?: string | null;
+        };
+        RegenerateContent: {
+            /**
+             * Format: uuid
+             * @description The revision being replaced, normally the current one.
+             */
+            basisRevisionId: string;
+        };
+        Revision: components["schemas"]["RevisionSummary"] & {
+            article: components["schemas"]["Article"];
+            /** Format: uuid */
+            contentId: string;
+        };
+        RevisionSummary: {
+            /** Format: uuid */
+            basisRevisionId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            evidenceBundleId?: string | null;
+            findings: components["schemas"]["Finding"][];
+            /** Format: uuid */
+            id: string;
+            needsReview: boolean;
+            /** @description Who wrote it: `pipeline` (openJam), `human` or `agent`. */
+            source: string;
+            title: string;
+        };
+        Revisions: {
+            revisions: components["schemas"]["RevisionSummary"][];
+        };
         TopicRanking: {
             /** Format: int64 */
             answerCount: number;
@@ -1680,6 +1981,13 @@ export interface components {
             brands: components["schemas"]["AnalyticsBrand"][];
             points: components["schemas"]["TrendPoint"][];
             unit: string;
+        };
+        UpdateFailure: {
+            /** Format: date-time */
+            at: string;
+            /** @description `insufficient_credits`, `agent_failed` or `failed`. */
+            code: string;
+            message: string;
         };
         Usage: {
             /** Format: double */
@@ -2481,14 +2789,45 @@ export interface operations {
     };
     list_content: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only content in these states: `drafted`, `discarded`, or both separated by a comma. */
+                state?: string;
+                /** @description Items per page, 1 to 100. The default is 100. */
+                limit?: number;
+                /** @description `pageInfo.nextCursor` of the page before. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentList"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2505,9 +2844,45 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateContent"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedContent"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2522,14 +2897,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentItem"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2544,14 +2935,29 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            /** @description The content is discarded. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2566,14 +2972,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deliveries"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2588,14 +3010,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentDestinations"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2610,16 +3048,52 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
-                /** @description Path parameter */
+                /** @description The destination */
                 destinationId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Publish"];
+            };
+        };
         responses: {
-            501: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptedDelivery"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2631,19 +3105,45 @@ export interface operations {
     };
     cancel_content_publishing: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description `true` confirms that cancelling may close the pull request that is open. */
+                withdraw?: string;
+            };
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
-                /** @description Path parameter */
+                /** @description The destination */
                 destinationId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            /** @description The schedule is cancelled. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2658,14 +3158,91 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
+                contentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Accepted"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+        };
+    };
+    export_content_markdown: {
+        parameters: {
+            query?: {
+                /** @description The revision to export. The default is the current one. */
+                revisionId?: string;
+            };
+            header?: never;
+            path: {
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/markdown": string;
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2680,14 +3257,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Publications"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2702,14 +3295,50 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkPublished"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Publication"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2724,14 +3353,42 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegenerateContent"];
+            };
+        };
         responses: {
-            501: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Accepted"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2746,14 +3403,29 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            /** @description The content is restored. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2768,14 +3440,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Revisions"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2790,14 +3478,50 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddRevision"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddedRevision"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2812,16 +3536,32 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The content item */
                 contentId: string;
-                /** @description Path parameter */
+                /** @description The revision */
                 revisionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Revision"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2859,7 +3599,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Destinations"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2876,9 +3632,37 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddDestination"];
+            };
+        };
         responses: {
-            501: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddedDestination"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2893,14 +3677,21 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The destination */
                 destinationId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            501: {
+            /** @description The destination is removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2915,14 +3706,41 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The destination */
                 destinationId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DestinationPolicy"];
+            };
+        };
         responses: {
-            501: {
+            /** @description The policy is changed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2937,14 +3755,42 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Path parameter */
+                /** @description The destination */
                 destinationId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfigureGithubDestination"];
+            };
+        };
         responses: {
-            501: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GithubDestination"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorBody"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
